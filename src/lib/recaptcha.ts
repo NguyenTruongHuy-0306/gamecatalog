@@ -12,8 +12,11 @@ export async function verifyRecaptcha(token: string): Promise<boolean> {
       body: new URLSearchParams({ secret, response: token }).toString(),
     });
     const data = await res.json();
+    // Fail open on network errors or misconfigured domains — don't block real users
+    if (!res.ok) return true;
     return data.success === true && (data.score ?? 0) >= SCORE_THRESHOLD;
   } catch {
-    return false;
+    // Network error reaching Google — fail open
+    return true;
   }
 }

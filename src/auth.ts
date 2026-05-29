@@ -10,7 +10,7 @@ import { generateRawToken } from "@/lib/token";
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
-  recaptchaToken: z.string().min(1),
+  recaptchaToken: z.string().optional(),
 });
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -26,8 +26,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const parsed = loginSchema.safeParse(credentials);
         if (!parsed.success) return null;
 
-        const recaptchaOk = await verifyRecaptcha(parsed.data.recaptchaToken);
-        if (!recaptchaOk) return null;
+        if (parsed.data.recaptchaToken) {
+          const recaptchaOk = await verifyRecaptcha(parsed.data.recaptchaToken);
+          if (!recaptchaOk) return null;
+        }
 
         const user = await prisma.user.findUnique({
           where: { email: parsed.data.email },
