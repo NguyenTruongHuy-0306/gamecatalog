@@ -1,0 +1,169 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  emailVerified DateTime?
+  passwordHash  String?
+  username      String    @unique
+  bio           String?
+  avatarUrl     String?
+  role          String    @default("user")
+  isBanned      Boolean   @default(false)
+  banReason     String?
+  bannedAt      DateTime?
+  bannedById    String?
+  googleId      String?   @unique
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  bannedBy           User?               @relation("BannedByUser", fields: [bannedById], references: [id])
+  bannedUsers        User[]              @relation("BannedByUser")
+  games              Game[]              @relation("GameCreatedBy")
+  gameVersions       GameVersion[]
+  reviews            Review[]            @relation("ReviewAuthor")
+  flaggedReviews     Review[]            @relation("ReviewFlaggedBy")
+  verificationTokens VerificationToken[]
+  favorites          Favorite[]
+
+  @@map("users")
+}
+
+model VerificationToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  type      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("verification_tokens")
+}
+
+model Genre {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  gameGenres GameGenre[]
+
+  @@map("genres")
+}
+
+model Game {
+  id             String    @id @default(uuid())
+  title          String
+  slug           String    @unique
+  description    String
+  releaseYear    Int
+  developer      String?
+  publisher      String?
+  qualityTier    String?
+  youtubeVideoId String?
+  coverImageUrl  String?
+  avgRating      Float     @default(0)
+  reviewCount    Int       @default(0)
+  isPublished    Boolean   @default(false)
+  createdById    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  createdBy  User?         @relation("GameCreatedBy", fields: [createdById], references: [id])
+  gameGenres GameGenre[]
+  versions   GameVersion[]
+  reviews    Review[]
+  favorites  Favorite[]
+
+  @@index([avgRating(sort: Desc)])
+  @@index([releaseYear])
+  @@index([qualityTier])
+  @@index([isPublished])
+  @@map("games")
+}
+
+model GameGenre {
+  gameId  String
+  genreId String
+
+  game  Game  @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  genre Genre @relation(fields: [genreId], references: [id], onDelete: Cascade)
+
+  @@id([gameId, genreId])
+  @@index([genreId])
+  @@map("game_genres")
+}
+
+model GameVersion {
+  id           String   @id @default(uuid())
+  gameId       String
+  versionLabel String
+  releaseDate  DateTime
+  notes        String?
+  createdById  String?
+  createdAt    DateTime @default(now())
+
+  game      Game  @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  createdBy User? @relation(fields: [createdById], references: [id])
+
+  @@index([gameId])
+  @@map("game_versions")
+}
+
+model Review {
+  id          String    @id @default(uuid())
+  gameId      String
+  userId      String
+  rating      Int
+  body        String?
+  isFlagged   Boolean   @default(false)
+  flaggedById String?
+  flagReason  String?
+  flaggedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  game      Game  @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  user      User  @relation("ReviewAuthor", fields: [userId], references: [id], onDelete: Cascade)
+  flaggedBy User? @relation("ReviewFlaggedBy", fields: [flaggedById], references: [id])
+
+  @@unique([gameId, userId])
+  @@index([gameId])
+  @@index([userId])
+  @@map("reviews")
+}
+
+model Favorite {
+  userId    String
+  gameId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@id([userId, gameId])
+  @@index([userId])
+  @@map("favorites")
+}
+
+model RateLimitLog {
+  id         String   @id @default(uuid())
+  identifier String
+  action     String
+  createdAt  DateTime @default(now())
+
+  @@index([identifier, action, createdAt(sort: Desc)])
+  @@map("rate_limit_log")
+}

@@ -1,0 +1,52 @@
+import { NextRequest, NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
+import { z } from "zod";
+import { prisma } from "@/lib/db";
+import { requireAuth } from "@/lib/api-helpers";
+
+const schema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(8).max(100),
+});
+
+export async function POST(request: NextRequest) {
+  const { session, error } = await requireAuth();
+  if (error) return error;
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
+  const parsed = schema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session!.user.id },
+    select: { passwordHash: true },
+  });
+
+  if (!user?.passwordHash) {
+    return NextResponse.json(
+      { error: "This account uses Google sign-in and doesn't have a password." },
+      { status: 400 }
+    );
+  }
+
+  const valid = await bcrypt.compare(parsed.data.currentPassword, user.passwordHash);
+  if (!valid) {
+    return NextResponse.json({ error: "Current password is incorrect." }, { status: 400 });
+  }
+
+  const newHash = await bcrypt.hash(parsed.data.newPassword, 12);
+  await prisma.user.update({
+    where: { id: session!.user.id },
+    data: { passwordHash: newHash },
+  });
+
+  return NextResponse.json({ message: "Password updated successfully" });
+}
