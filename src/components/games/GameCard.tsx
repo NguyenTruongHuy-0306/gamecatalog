@@ -18,6 +18,7 @@ interface GameCardProps {
   releaseYear: number;
   qualityTier?: string | null;
   gameGenres?: { genre: Genre }[];
+  rank?: number;
 }
 
 const QUALITY_COLORS: Record<string, string> = {
@@ -41,10 +42,11 @@ export function GameCard({
   releaseYear,
   qualityTier,
   gameGenres = [],
+  rank,
 }: GameCardProps) {
   return (
     <Link href={`/games/${slug}`} className="group block">
-      <div className="rounded-xl overflow-hidden border bg-card card-hover">
+      <div className="rounded-xl overflow-hidden border bg-card transition-all duration-200 hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10">
         {/* Cover */}
         <div className="relative aspect-[3/4] bg-muted overflow-hidden">
           {coverImageUrl ? (
@@ -62,8 +64,17 @@ export function GameCard({
             </div>
           )}
 
-          {/* Overlay gradient on hover */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          {/* Bottom gradient */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+          {/* Rank badge */}
+          {rank !== undefined && (
+            <div className="absolute top-2 left-2">
+              <span className="font-mono text-xs font-bold bg-black/70 backdrop-blur-sm text-white/80 rounded px-1.5 py-0.5">
+                #{rank}
+              </span>
+            </div>
+          )}
 
           {/* Quality badge */}
           {qualityTier && (
@@ -72,7 +83,7 @@ export function GameCard({
             </span>
           )}
 
-          {/* Rating on hover */}
+          {/* Hover info */}
           <div className="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-1 group-hover:translate-y-0">
             <div className="flex items-center gap-1.5 bg-black/70 backdrop-blur-sm rounded-lg px-2 py-1">
               <StarDisplay rating={avgRating} size="sm" />
@@ -89,7 +100,7 @@ export function GameCard({
           </h3>
           <div className="flex items-center justify-between">
             <StarDisplay rating={avgRating} size="sm" />
-            <span className="text-xs text-muted-foreground">{releaseYear}</span>
+            <span className="text-xs text-muted-foreground tabular-nums">{releaseYear}</span>
           </div>
           {gameGenres.length > 0 && (
             <div className="flex flex-wrap gap-1">
