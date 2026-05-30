@@ -17,6 +17,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { X } from "lucide-react";
+import { CoverImageInput } from "@/components/admin/CoverImageInput";
 
 interface Genre {
   id: string;
@@ -170,9 +171,9 @@ export function GameForm({ genres, initial = {} }: GameFormProps) {
           <Label htmlFor="youtube">YouTube Video ID</Label>
           <Input id="youtube" value={youtubeVideoId} onChange={(e) => setYoutubeVideoId(e.target.value)} placeholder="dQw4w9WgXcQ" disabled={loading} />
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="cover">Cover Image URL</Label>
-          <Input id="cover" type="url" value={coverImageUrl} onChange={(e) => setCoverImageUrl(e.target.value)} disabled={loading} />
+        <div className="col-span-2 space-y-1.5">
+          <Label>Cover Image</Label>
+          <CoverImageInput value={coverImageUrl} onChange={setCoverImageUrl} disabled={loading} />
         </div>
       </div>
 
