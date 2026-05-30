@@ -11,10 +11,13 @@ export async function verifyRecaptcha(token: string): Promise<boolean> {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({ secret, response: token }).toString(),
     });
-    const data = await res.json();
-    // Fail open on network errors or misconfigured domains — don't block real users
     if (!res.ok) return true;
-    return data.success === true && (data.score ?? 0) >= SCORE_THRESHOLD;
+    const data = await res.json();
+    // Only block when Google *successfully* scored the token and the score is too low.
+    // Fail open for everything else (domain mismatch, expired token, misconfiguration)
+    // so a reCAPTCHA setup issue never locks out real users.
+    if (data.success !== true) return true;
+    return (data.score ?? 0) >= SCORE_THRESHOLD;
   } catch {
     // Network error reaching Google — fail open
     return true;
