@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { apiError } from "@/lib/client-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Check, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, X, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 
 const BulkBar = ({
   count, onDelete, onClear, disabled,
@@ -42,12 +42,16 @@ interface Genre {
   createdAt: string;
 }
 
+type GenreSortKey = "name" | "slug";
+
 function slugify(str: string) {
   return str.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
 export default function AdminGenresPage() {
   const [genres, setGenres] = useState<Genre[]>([]);
+  const [sortKey, setSortKey] = useState<GenreSortKey>("name");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [loading, setLoading] = useState(true);
 
   // Create form state
@@ -69,9 +73,22 @@ export default function AdminGenresPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
 
-  const selectableIds = genres.filter((g) => g.id !== editingId).map((g) => g.id);
+  const sorted = useMemo(() => {
+    return [...genres].sort((a, b) => {
+      const cmp = a[sortKey].localeCompare(b[sortKey]);
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  }, [genres, sortKey, sortDir]);
+
+  const handleGenreSort = (key: GenreSortKey) => {
+    if (sortKey === key) setSortDir((d) => d === "asc" ? "desc" : "asc");
+    else { setSortKey(key); setSortDir("asc"); }
+  };
+
+  const selectableIds = sorted.filter((g) => g.id !== editingId).map((g) => g.id);
   const allSelected = selectableIds.length > 0 && selectableIds.every((id) => selected.has(id));
   const toggleAll = () => setSelected(allSelected ? new Set() : new Set(selectableIds));
+
   const toggleOne = (id: string) =>
     setSelected((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
@@ -238,8 +255,20 @@ export default function AdminGenresPage() {
                   disabled={selectableIds.length === 0}
                 />
               </TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Slug</TableHead>
+              <TableHead>
+                <button type="button" onClick={() => handleGenreSort("name")}
+                  className={`inline-flex items-center gap-1 text-xs font-medium transition-colors hover:text-foreground ${sortKey === "name" ? "text-foreground" : "text-muted-foreground"}`}>
+                  Name
+                  {sortKey === "name" ? (sortDir === "asc" ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />) : <ChevronsUpDown className="h-3.5 w-3.5 opacity-40" />}
+                </button>
+              </TableHead>
+              <TableHead>
+                <button type="button" onClick={() => handleGenreSort("slug")}
+                  className={`inline-flex items-center gap-1 text-xs font-medium transition-colors hover:text-foreground ${sortKey === "slug" ? "text-foreground" : "text-muted-foreground"}`}>
+                  Slug
+                  {sortKey === "slug" ? (sortDir === "asc" ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />) : <ChevronsUpDown className="h-3.5 w-3.5 opacity-40" />}
+                </button>
+              </TableHead>
               <TableHead />
             </TableRow>
           </TableHeader>
@@ -252,7 +281,7 @@ export default function AdminGenresPage() {
               <TableRow>
                 <TableCell colSpan={4} className="text-center text-muted-foreground py-8">No genres yet</TableCell>
               </TableRow>
-            ) : genres.map((genre) => (
+            ) : sorted.map((genre) => (
               <TableRow
                 key={genre.id}
                 data-state={selected.has(genre.id) ? "selected" : undefined}

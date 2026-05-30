@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { StarDisplay } from "@/components/shared/StarDisplay";
 import { StarRating } from "@/components/reviews/StarRating";
 import { toast } from "sonner";
-import { CheckCircle, Trash2, RefreshCw, Pencil, Check, X, Flag, ShieldOff } from "lucide-react";
+import { CheckCircle, Trash2, RefreshCw, Pencil, Check, X, Flag, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 
 interface Review {
   id: string;
@@ -24,6 +24,18 @@ interface Review {
 }
 
 type FilterTab = "flagged" | "all";
+type ReviewSortKey = "date" | "rating" | "user" | "game";
+
+function SortBtn({ label, sortKey, current, dir, onSort }: { label: string; sortKey: ReviewSortKey; current: ReviewSortKey; dir: "asc" | "desc"; onSort: (k: ReviewSortKey) => void }) {
+  const active = current === sortKey;
+  return (
+    <button type="button" onClick={() => onSort(sortKey)}
+      className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded transition-colors ${active ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+      {label}
+      {active ? (dir === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />) : <ChevronsUpDown className="h-3 w-3 opacity-40" />}
+    </button>
+  );
+}
 
 export default function AdminReviewsPage() {
   const [tab, setTab] = useState<FilterTab>("flagged");
@@ -31,6 +43,8 @@ export default function AdminReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [sortKey, setSortKey] = useState<ReviewSortKey>("date");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
   // Inline edit state
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -90,6 +104,22 @@ export default function AdminReviewsPage() {
     e.preventDefault();
     fetchReviews(tab, q);
   };
+
+  const handleSort = (key: ReviewSortKey) => {
+    if (sortKey === key) setSortDir((d) => d === "asc" ? "desc" : "asc");
+    else { setSortKey(key); setSortDir("desc"); }
+  };
+
+  const sorted = useMemo(() => {
+    return [...reviews].sort((a, b) => {
+      let cmp = 0;
+      if (sortKey === "date") cmp = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      else if (sortKey === "rating") cmp = a.rating - b.rating;
+      else if (sortKey === "user") cmp = a.user.username.localeCompare(b.user.username);
+      else if (sortKey === "game") cmp = a.game.title.localeCompare(b.game.title);
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  }, [reviews, sortKey, sortDir]);
 
   const handleAction = async (id: string, action: "unflag" | "delete") => {
     const res = await fetch(`/api/admin/reviews/${id}`, {
@@ -168,6 +198,17 @@ export default function AdminReviewsPage() {
         </form>
       </div>
 
+      {/* Sort bar */}
+      {reviews.length > 0 && (
+        <div className="flex items-center gap-1 flex-wrap">
+          <span className="text-xs text-muted-foreground mr-1">Sort:</span>
+          <SortBtn label="Date" sortKey="date" current={sortKey} dir={sortDir} onSort={handleSort} />
+          <SortBtn label="Rating" sortKey="rating" current={sortKey} dir={sortDir} onSort={handleSort} />
+          <SortBtn label="User" sortKey="user" current={sortKey} dir={sortDir} onSort={handleSort} />
+          <SortBtn label="Game" sortKey="game" current={sortKey} dir={sortDir} onSort={handleSort} />
+        </div>
+      )}
+
       {/* Bulk action bar */}
       {selected.size > 0 && (
         <div className="flex items-center gap-3 px-4 py-2.5 bg-muted/60 border rounded-lg">
@@ -199,7 +240,7 @@ export default function AdminReviewsPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {reviews.map((review) => (
+          {sorted.map((review) => (
             <div
               key={review.id}
               className={`border rounded-lg p-4 space-y-3 ${selected.has(review.id) ? "bg-muted/40" : ""}`}

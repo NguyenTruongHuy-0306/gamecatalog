@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { StarDisplay } from "@/components/shared/StarDisplay";
+import { SortableHead } from "@/components/admin/SortableHead";
 import { Trash2, X } from "lucide-react";
 
 interface Game {
@@ -25,14 +26,25 @@ interface Game {
 
 export function AdminGamesTable({ games }: { games: Game[] }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [isPending, startTransition] = useTransition();
 
-  const allSelected = games.length > 0 && games.every((g) => selected.has(g.id));
+  const currentSort = searchParams.get("sort") ?? "createdAt";
+  const currentDir = (searchParams.get("dir") ?? "desc") as "asc" | "desc";
 
+  const handleSort = (key: string) => {
+    const newDir = currentSort === key && currentDir === "asc" ? "desc" : "asc";
+    const params = new URLSearchParams(searchParams);
+    params.set("sort", key);
+    params.set("dir", newDir);
+    router.push(`${pathname}?${params}`);
+  };
+
+  const allSelected = games.length > 0 && games.every((g) => selected.has(g.id));
   const toggleAll = () =>
     setSelected(allSelected ? new Set() : new Set(games.map((g) => g.id)));
-
   const toggle = (id: string) =>
     setSelected((prev) => {
       const next = new Set(prev);
@@ -43,7 +55,6 @@ export function AdminGamesTable({ games }: { games: Game[] }) {
   const handleBulkDelete = () => {
     const ids = [...selected];
     if (!confirm(`Permanently delete ${ids.length} game${ids.length > 1 ? "s" : ""}? This cannot be undone.`)) return;
-
     startTransition(async () => {
       const results = await Promise.allSettled(
         ids.map((id) => fetch(`/api/games/${id}`, { method: "DELETE" }))
@@ -52,10 +63,8 @@ export function AdminGamesTable({ games }: { games: Game[] }) {
         (r) => r.status === "rejected" || (r.status === "fulfilled" && !r.value.ok)
       ).length;
       const succeeded = ids.length - failed;
-
       if (succeeded > 0) toast.success(`${succeeded} game${succeeded > 1 ? "s" : ""} deleted.`);
       if (failed > 0) toast.error(`${failed} deletion${failed > 1 ? "s" : ""} failed.`);
-
       setSelected(new Set());
       router.refresh();
     });
@@ -67,13 +76,7 @@ export function AdminGamesTable({ games }: { games: Game[] }) {
         <div className="flex items-center gap-3 mb-4 px-4 py-2.5 bg-muted/60 border rounded-lg">
           <span className="text-sm font-medium">{selected.size} selected</span>
           <div className="flex gap-2 ml-auto">
-            <Button
-              variant="destructive"
-              size="sm"
-              className="gap-1.5"
-              onClick={handleBulkDelete}
-              disabled={isPending}
-            >
+            <Button variant="destructive" size="sm" className="gap-1.5" onClick={handleBulkDelete} disabled={isPending}>
               <Trash2 className="h-3.5 w-3.5" /> Delete
             </Button>
             <Button variant="ghost" size="sm" onClick={() => setSelected(new Set())} disabled={isPending}>
@@ -97,12 +100,22 @@ export function AdminGamesTable({ games }: { games: Game[] }) {
                   disabled={games.length === 0}
                 />
               </TableHead>
-              <TableHead>Title</TableHead>
-              <TableHead>Year</TableHead>
+              <TableHead>
+                <SortableHead label="Title" sortKey="title" currentSort={currentSort} currentDir={currentDir} onSort={handleSort} />
+              </TableHead>
+              <TableHead>
+                <SortableHead label="Year" sortKey="releaseYear" currentSort={currentSort} currentDir={currentDir} onSort={handleSort} />
+              </TableHead>
               <TableHead>Type</TableHead>
-              <TableHead>Rating</TableHead>
-              <TableHead>Reviews</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead>
+                <SortableHead label="Rating" sortKey="avgRating" currentSort={currentSort} currentDir={currentDir} onSort={handleSort} />
+              </TableHead>
+              <TableHead>
+                <SortableHead label="Reviews" sortKey="reviewCount" currentSort={currentSort} currentDir={currentDir} onSort={handleSort} />
+              </TableHead>
+              <TableHead>
+                <SortableHead label="Status" sortKey="isPublished" currentSort={currentSort} currentDir={currentDir} onSort={handleSort} />
+              </TableHead>
               <TableHead />
             </TableRow>
           </TableHeader>

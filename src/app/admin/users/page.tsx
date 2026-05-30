@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AdminUsersTable } from "@/components/admin/AdminUsersTable";
 import type { Metadata } from "next";
+import type { Prisma } from "@/generated/prisma/client";
 
 export const metadata: Metadata = { title: "Users — Admin" };
 
@@ -12,8 +13,19 @@ interface PageProps {
   searchParams: Promise<Record<string, string>>;
 }
 
+function getOrderBy(sort: string, dir: string): Prisma.UserOrderByWithRelationInput {
+  const d = dir === "asc" ? "asc" : "desc";
+  switch (sort) {
+    case "username": return { username: d };
+    case "role":     return { role: d };
+    case "isBanned": return { isBanned: d };
+    case "reviews":  return { reviews: { _count: d } };
+    default:         return { createdAt: d };
+  }
+}
+
 export default async function AdminUsersPage({ searchParams }: PageProps) {
-  const { q = "", page = "1", is_banned } = await searchParams;
+  const { q = "", page = "1", is_banned, sort = "createdAt", dir = "desc" } = await searchParams;
   const pageNum = Math.max(1, parseInt(page, 10));
   const limit = 20;
 
@@ -41,7 +53,7 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
         isBanned: true, emailVerified: true, createdAt: true,
         _count: { select: { reviews: true } },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: getOrderBy(sort, dir),
       skip: (pageNum - 1) * limit,
       take: limit,
     }),
@@ -50,6 +62,15 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
 
   const totalPages = Math.ceil(total / limit);
 
+  const buildUrl = (overrides: Record<string, string>) => {
+    const params = new URLSearchParams({
+      q, page, sort, dir,
+      ...(is_banned ? { is_banned } : {}),
+      ...overrides,
+    });
+    return `/admin/users?${params}`;
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -57,7 +78,6 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
         <span className="text-sm text-muted-foreground">{total} total</span>
       </div>
 
-      {/* Filters */}
       <form method="get" className="flex gap-3 mb-6 flex-wrap items-end">
         <div className="flex flex-col gap-1">
           <label htmlFor="users-q" className="text-xs font-medium text-muted-foreground">Search</label>
@@ -71,17 +91,18 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
             <option value="true">Banned</option>
           </select>
         </div>
+        <input type="hidden" name="sort" value={sort} />
+        <input type="hidden" name="dir" value={dir} />
         <Button type="submit" variant="outline" size="sm">Filter</Button>
         <Button render={<Link href="/admin/users" />} variant="ghost" size="sm">Clear</Button>
       </form>
 
       <AdminUsersTable users={users} currentUserId={currentUserId} />
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex gap-2 justify-center mt-6">
           {pageNum > 1 && (
-            <Button render={<Link href={`/admin/users?q=${q}&page=${pageNum - 1}${is_banned !== undefined ? `&is_banned=${is_banned}` : ""}`} />} variant="outline" size="sm">
+            <Button render={<Link href={buildUrl({ page: String(pageNum - 1) })} />} variant="outline" size="sm">
               Previous
             </Button>
           )}
@@ -89,7 +110,7 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
             Page {pageNum} of {totalPages}
           </span>
           {pageNum < totalPages && (
-            <Button render={<Link href={`/admin/users?q=${q}&page=${pageNum + 1}${is_banned !== undefined ? `&is_banned=${is_banned}` : ""}`} />} variant="outline" size="sm">
+            <Button render={<Link href={buildUrl({ page: String(pageNum + 1) })} />} variant="outline" size="sm">
               Next
             </Button>
           )}
