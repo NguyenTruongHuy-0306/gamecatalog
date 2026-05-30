@@ -48,7 +48,7 @@ export default async function ProfilePage() {
       <div className="relative hero-gradient rounded-2xl overflow-hidden mb-8">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/5 pointer-events-none" />
         <div className="relative px-6 py-8">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5">
             {/* Avatar */}
             <div className="relative shrink-0">
               <div className="h-20 w-20 rounded-2xl overflow-hidden ring-4 ring-primary/20 shadow-lg shadow-primary/15">
@@ -101,7 +101,7 @@ export default async function ProfilePage() {
             </div>
 
             <Button variant="outline" size="sm" render={<Link href="/settings" />}
-              className="gap-2 shrink-0 hover:bg-primary/10 hover:border-primary/40 transition-all">
+              className="gap-2 self-start sm:self-center shrink-0 hover:bg-primary/10 hover:border-primary/40 transition-all">
               <Settings className="h-4 w-4" /> Edit Profile
             </Button>
           </div>

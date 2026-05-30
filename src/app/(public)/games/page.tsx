@@ -66,7 +66,7 @@ export default async function GamesPage({ searchParams }: PageProps) {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-1">Browse Games</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-1">Browse Games</h1>
         <p className="text-muted-foreground text-sm">{total} game{total !== 1 ? "s" : ""} found</p>
       </div>
 

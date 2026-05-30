@@ -90,7 +90,7 @@ export default async function GameDetailPage({ params }: PageProps) {
           {/* Info */}
           <div className="flex-1 min-w-0 space-y-3">
             <div className="flex flex-wrap items-start gap-2">
-              <h1 className="text-3xl font-bold flex-1 leading-tight">{game.title}</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold flex-1 leading-tight">{game.title}</h1>
               {game.qualityTier && (
                 <Badge className={`border text-xs font-semibold ${QUALITY_COLORS[game.qualityTier] ?? ""}`} variant="outline">
                   {QUALITY_LABELS[game.qualityTier] ?? game.qualityTier}
@@ -188,7 +188,7 @@ export default async function GameDetailPage({ params }: PageProps) {
                     <span className="flex items-center gap-1.5 text-muted-foreground">
                       <Icon className="h-3.5 w-3.5" /> {label}
                     </span>
-                    <span className="font-medium text-right max-w-[55%] truncate">{value}</span>
+                    <span className="font-medium text-right max-w-[55%] truncate ml-2">{value}</span>
                   </div>
                 ))}
             </div>

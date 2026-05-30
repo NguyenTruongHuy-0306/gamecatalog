@@ -109,7 +109,7 @@ export default async function HomePage() {
               reviews from a verified community of players.
             </p>
 
-            <div className="flex flex-wrap gap-3 mb-16">
+            <div className="flex flex-col sm:flex-row gap-3 mb-12 sm:mb-16">
               <Button
                 render={<Link href="/games" />}
                 size="lg"
@@ -129,18 +129,18 @@ export default async function HomePage() {
             </div>
 
             {/* Stats bar */}
-            <div className="flex flex-wrap gap-8 text-sm border-t border-border/50 pt-6">
+            <div className="grid grid-cols-3 gap-4 border-t border-border/50 pt-6 sm:flex sm:gap-8">
               <div>
-                <span className="block text-2xl font-black tabular-nums">{stats.games.toLocaleString()}</span>
-                <span className="text-muted-foreground text-xs uppercase tracking-wider font-medium">Games Catalogued</span>
+                <span className="block text-xl sm:text-2xl font-black tabular-nums">{stats.games.toLocaleString()}</span>
+                <span className="text-muted-foreground text-xs uppercase tracking-wider font-medium">Games</span>
               </div>
-              <div className="border-l border-border/50 pl-8">
-                <span className="block text-2xl font-black tabular-nums">{stats.reviews.toLocaleString()}</span>
-                <span className="text-muted-foreground text-xs uppercase tracking-wider font-medium">Community Reviews</span>
+              <div className="sm:border-l sm:border-border/50 sm:pl-8">
+                <span className="block text-xl sm:text-2xl font-black tabular-nums">{stats.reviews.toLocaleString()}</span>
+                <span className="text-muted-foreground text-xs uppercase tracking-wider font-medium">Reviews</span>
               </div>
-              <div className="border-l border-border/50 pl-8">
-                <span className="block text-2xl font-black">100%</span>
-                <span className="text-muted-foreground text-xs uppercase tracking-wider font-medium">Free to Use</span>
+              <div className="sm:border-l sm:border-border/50 sm:pl-8">
+                <span className="block text-xl sm:text-2xl font-black">100%</span>
+                <span className="text-muted-foreground text-xs uppercase tracking-wider font-medium">Free</span>
               </div>
             </div>
           </div>

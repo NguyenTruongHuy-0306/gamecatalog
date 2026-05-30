@@ -39,7 +39,7 @@ function SearchBar({ defaultValue }: { defaultValue: string }) {
         name="q"
         defaultValue={defaultValue}
         placeholder="Search by title, developer…"
-        className="max-w-md"
+        className="w-full sm:max-w-md"
         autoFocus
       />
     </form>
@@ -52,7 +52,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Search</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6">Search</h1>
 
       <Suspense>
         <SearchBar defaultValue={q} />
