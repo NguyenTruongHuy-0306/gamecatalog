@@ -4,6 +4,13 @@ import { requireAdmin } from "@/lib/api-helpers";
 
 const FOLDER = "gamecatalog/covers";
 const MAX_BYTES = 5_000_000;
+const UPLOAD_OPTIONS = {
+  folder: FOLDER,
+  transformation: [
+    { width: 1200, crop: "limit" },
+    { quality: "auto", fetch_format: "auto" },
+  ],
+};
 
 export async function POST(request: NextRequest) {
   if (!isConfigured()) {
@@ -13,6 +20,28 @@ export async function POST(request: NextRequest) {
   const { error } = await requireAdmin();
   if (error) return error;
 
+  const contentType = request.headers.get("content-type") ?? "";
+
+  // URL mode: fetch a remote image and re-upload to Cloudinary
+  if (contentType.includes("application/json")) {
+    let body: { url?: string };
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    }
+    if (!body.url || typeof body.url !== "string") {
+      return NextResponse.json({ error: "url is required" }, { status: 400 });
+    }
+    try {
+      const result = await cloudinary.uploader.upload(body.url, UPLOAD_OPTIONS);
+      return NextResponse.json({ url: result.secure_url });
+    } catch {
+      return NextResponse.json({ error: "Failed to fetch image from URL" }, { status: 422 });
+    }
+  }
+
+  // File mode: upload a local file
   let formData: FormData;
   try {
     formData = await request.formData();
@@ -33,19 +62,10 @@ export async function POST(request: NextRequest) {
 
   const result = await new Promise<{ secure_url: string }>((resolve, reject) => {
     cloudinary.uploader
-      .upload_stream(
-        {
-          folder: FOLDER,
-          transformation: [
-            { width: 1200, crop: "limit" },
-            { quality: "auto", fetch_format: "auto" },
-          ],
-        },
-        (err, res) => {
-          if (err || !res) reject(err ?? new Error("Upload failed"));
-          else resolve(res as { secure_url: string });
-        }
-      )
+      .upload_stream(UPLOAD_OPTIONS, (err, res) => {
+        if (err || !res) reject(err ?? new Error("Upload failed"));
+        else resolve(res as { secure_url: string });
+      })
       .end(buffer);
   });
 

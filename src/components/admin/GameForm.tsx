@@ -47,6 +47,30 @@ function slugify(str: string) {
   return str.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
+// Domains already allowed in next.config.ts remotePatterns — no need to re-upload these.
+const ALLOWED_HOSTS = ["res.cloudinary.com", "images.igdb.com", "img.youtube.com"];
+
+function needsNormalization(url: string) {
+  if (!url) return false;
+  try {
+    const { hostname } = new URL(url);
+    return !ALLOWED_HOSTS.some((h) => hostname === h || hostname.endsWith("." + h));
+  } catch {
+    return false;
+  }
+}
+
+async function normalizeCoverUrl(url: string): Promise<string> {
+  const res = await fetch("/api/admin/games/cover", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error ?? "Failed to upload image");
+  return data.url;
+}
+
 export function GameForm({ genres, initial = {} }: GameFormProps) {
   const router = useRouter();
   const isEdit = !!initial.id;
@@ -81,6 +105,18 @@ export function GameForm({ genres, initial = {} }: GameFormProps) {
     setError("");
     setLoading(true);
 
+    let resolvedCoverUrl = coverImageUrl;
+    if (needsNormalization(coverImageUrl)) {
+      try {
+        resolvedCoverUrl = await normalizeCoverUrl(coverImageUrl);
+        setCoverImageUrl(resolvedCoverUrl);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to upload cover image");
+        setLoading(false);
+        return;
+      }
+    }
+
     const body = {
       title,
       slug,
@@ -90,7 +126,7 @@ export function GameForm({ genres, initial = {} }: GameFormProps) {
       publisher: publisher || undefined,
       qualityTier: qualityTier || undefined,
       youtubeVideoId: youtubeVideoId || undefined,
-      coverImageUrl: coverImageUrl || undefined,
+      coverImageUrl: resolvedCoverUrl || undefined,
       isPublished,
       genreIds: selectedGenreIds,
     };
