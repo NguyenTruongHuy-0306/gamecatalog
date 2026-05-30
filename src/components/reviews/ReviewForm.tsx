@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import Link from "next/link";
+import { apiError } from "@/lib/client-error";
 
 interface ReviewFormProps {
   gameSlug: string;
@@ -106,7 +107,7 @@ export function ReviewForm({ gameSlug, onSuccess }: ReviewFormProps) {
       if (res.status === 409) {
         setError("You have already reviewed this game.");
       } else {
-        setError(data.error ?? "Failed to submit review.");
+        setError(apiError(data, "Failed to submit review."));
       }
       return;
     }

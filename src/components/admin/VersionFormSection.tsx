@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Pencil, Trash2, Check, X } from "lucide-react";
+import { apiError } from "@/lib/client-error";
 
 interface Version {
   id: string;
@@ -54,7 +55,7 @@ export function VersionFormSection({ gameId, versions: initialVersions }: Versio
     });
     const data = await res.json();
     setAdding(false);
-    if (!res.ok) { toast.error(data.error ?? "Failed to add version"); return; }
+    if (!res.ok) { toast.error(apiError(data, "Failed to add version")); return; }
     toast.success("Version added");
     setVersions((prev) => [data, ...prev]);
     setLabel(""); setDate(""); setNotes("");
@@ -78,7 +79,7 @@ export function VersionFormSection({ gameId, versions: initialVersions }: Versio
     });
     const data = await res.json();
     setSaving(false);
-    if (!res.ok) { toast.error(data.error ?? "Failed to update"); return; }
+    if (!res.ok) { toast.error(apiError(data, "Failed to update")); return; }
     toast.success("Version updated");
     setVersions((prev) =>
       prev.map((v) =>

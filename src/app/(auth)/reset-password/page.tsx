@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
+import { apiError } from "@/lib/client-error";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -36,7 +37,7 @@ function ResetPasswordContent() {
     const data = await res.json();
     setLoading(false);
 
-    if (!res.ok) { setError(data.error ?? "Reset failed."); return; }
+    if (!res.ok) { setError(apiError(data, "Reset failed.")); return; }
     setSuccess(true);
     setTimeout(() => router.push("/login"), 3000);
   };

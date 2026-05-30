@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { apiError } from "@/lib/client-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -95,7 +96,7 @@ export default function AdminGenresPage() {
     setCreating(false);
 
     if (!res.ok) {
-      setCreateError(data.error ?? "Failed to create genre");
+      setCreateError(apiError(data, "Failed to create genre"));
       return;
     }
 
@@ -128,7 +129,7 @@ export default function AdminGenresPage() {
     setSaving(false);
 
     if (!res.ok) {
-      toast.error(data.error ?? "Failed to update genre");
+      toast.error(apiError(data, "Failed to update genre"));
       return;
     }
 
@@ -148,7 +149,7 @@ export default function AdminGenresPage() {
 
     if (!res.ok) {
       const data = await res.json();
-      toast.error(data.error ?? "Failed to delete genre");
+      toast.error(apiError(data, "Failed to delete genre"));
       return;
     }
 

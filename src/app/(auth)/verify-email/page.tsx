@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
+import { apiError } from "@/lib/client-error";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -34,7 +35,7 @@ function VerifyEmailContent() {
           setTimeout(() => router.push("/login"), 3000);
         } else {
           setStatus("error");
-          setMessage(data.error ?? "Verification failed.");
+          setMessage(apiError(data, "Verification failed."));
         }
       })
       .catch(() => {

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff } from "lucide-react";
+import { apiError } from "@/lib/client-error";
 
 export function CompleteProfileForm() {
   const { data: session, update } = useSession();
@@ -40,7 +41,7 @@ export function CompleteProfileForm() {
 
     if (!res.ok) {
       setLoading(false);
-      setError(data.error ?? "Something went wrong. Please try again.");
+      setError(apiError(data, "Something went wrong. Please try again."));
       return;
     }
 

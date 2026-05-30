@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { X } from "lucide-react";
 import { CoverImageInput } from "@/components/admin/CoverImageInput";
+import { apiError } from "@/lib/client-error";
 
 interface Genre {
   id: string;
@@ -152,7 +153,7 @@ export function GameForm({ genres, initial = {} }: GameFormProps) {
     setLoading(false);
 
     if (!res.ok) {
-      setError(data.error ?? "Failed to save game");
+      setError(apiError(data, "Failed to save game"));
       return;
     }
 

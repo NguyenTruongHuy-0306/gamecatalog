@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { StarDisplay } from "@/components/shared/StarDisplay";
 import { Flag, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { apiError } from "@/lib/client-error";
 
 interface Review {
   id: string;
@@ -44,7 +45,7 @@ export function ReviewCard({ review, gameSlug, onDelete }: ReviewCardProps) {
     });
     setFlagging(false);
     if (res.ok) { toast.success("Review flagged for moderation"); setFlagged(true); }
-    else { const d = await res.json(); toast.error(d.error ?? "Failed to flag review"); }
+    else { const d = await res.json(); toast.error(apiError(d, "Failed to flag review")); }
   };
 
   return (

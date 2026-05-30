@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Camera, Trash2, Loader2, ImagePlus } from "lucide-react";
+import { apiError } from "@/lib/client-error";
 
 interface AvatarUploadProps {
   currentUrl: string | null;
@@ -56,7 +57,7 @@ export function AvatarUpload({
 
       if (!res.ok) {
         setPreview(currentUrl);
-        setError(data.error ?? "Upload failed. Please try again.");
+        setError(apiError(data, "Upload failed. Please try again."));
         return;
       }
 
@@ -78,7 +79,7 @@ export function AvatarUpload({
       const res = await fetch(deleteUrl, { method: "DELETE" });
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error ?? "Failed to remove avatar.");
+        setError(apiError(data, "Failed to remove avatar."));
         return;
       }
       setPreview(null);

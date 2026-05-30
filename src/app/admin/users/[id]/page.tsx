@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { apiError } from "@/lib/client-error";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -90,7 +91,7 @@ export default function AdminUserDetailPage() {
     });
     const data = await res.json();
     setSaving(false);
-    if (!res.ok) { setEditError(data.error ?? "Failed to save"); return; }
+    if (!res.ok) { setEditError(apiError(data, "Failed to save")); return; }
     toast.success("Profile updated");
     setUser((prev) => prev ? { ...prev, ...data } : prev);
     setEditing(false);
@@ -105,7 +106,7 @@ export default function AdminUserDetailPage() {
     });
     const data = await res.json();
     setActing(false);
-    if (!res.ok) { toast.error(data.error ?? "Failed"); return; }
+    if (!res.ok) { toast.error(apiError(data, "Failed")); return; }
     toast.success(isBanned ? "User banned" : "User unbanned");
     setUser((prev) => prev ? { ...prev, isBanned: data.isBanned, banReason: data.banReason } : prev);
     setBanReason("");
@@ -121,7 +122,7 @@ export default function AdminUserDetailPage() {
     });
     const data = await res.json();
     setActing(false);
-    if (!res.ok) { toast.error(data.error ?? "Failed"); return; }
+    if (!res.ok) { toast.error(apiError(data, "Failed")); return; }
     toast.success(role === "admin" ? "Promoted to admin" : "Demoted to user");
     setUser((prev) => prev ? { ...prev, role: data.role } : prev);
   };

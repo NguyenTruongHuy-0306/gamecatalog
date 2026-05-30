@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { apiError } from "@/lib/client-error";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,7 +59,7 @@ export default function SettingsPage() {
     });
     const data = await res.json();
     setProfileLoading(false);
-    if (!res.ok) { setProfileError(data.error ?? "Failed to update profile."); return; }
+    if (!res.ok) { setProfileError(apiError(data, "Failed to update profile.")); return; }
     toast.success("Profile updated successfully");
     await updateSession({ username: data.username });
   };
@@ -76,7 +77,7 @@ export default function SettingsPage() {
     });
     const data = await res.json();
     setPasswordLoading(false);
-    if (!res.ok) { setPasswordError(data.error ?? "Failed to change password."); return; }
+    if (!res.ok) { setPasswordError(apiError(data, "Failed to change password.")); return; }
     toast.success("Password updated successfully");
     setCurrentPassword(""); setNewPassword(""); setConfirm("");
   };
