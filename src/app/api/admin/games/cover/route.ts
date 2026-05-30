@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
         {
           folder: FOLDER,
           transformation: [
-            { width: 400, height: 560, crop: "fill", gravity: "center" },
+            { width: 1200, crop: "limit" },
             { quality: "auto", fetch_format: "auto" },
           ],
         },
