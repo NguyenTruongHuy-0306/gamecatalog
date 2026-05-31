@@ -43,13 +43,13 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Reject already-registered emails
+  // Silently succeed for already-registered emails to prevent enumeration.
   const existing = await prisma.user.findFirst({
     where: { email, deletedAt: null, NOT: { emailVerified: null, passwordHash: null } },
     select: { id: true },
   });
   if (existing) {
-    return NextResponse.json({ error: "Email is already registered." }, { status: 409 });
+    return NextResponse.json({ message: "Verification code sent." });
   }
 
   // Create (or reuse) a pending user row so the OTP token has a valid userId FK.

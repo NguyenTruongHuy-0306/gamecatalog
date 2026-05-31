@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { requireAuth } from "@/lib/api-helpers";
+import { requireAuth, getClientIp } from "@/lib/api-helpers";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const updateSchema = z.object({
   rating: z.number().int().min(1).max(5).optional(),
@@ -51,10 +52,16 @@ export async function PUT(request: NextRequest, { params }: Params) {
   return NextResponse.json(updated);
 }
 
-export async function DELETE(_request: NextRequest, { params }: Params) {
+export async function DELETE(request: NextRequest, { params }: Params) {
   const { rid } = await params;
   const { session, error } = await requireAuth();
   if (error) return error;
+
+  const ip = getClientIp(request);
+  const rateLimit = await checkRateLimit(`ip:${ip}`, "delete-review", 20, 60);
+  if (!rateLimit.allowed) {
+    return NextResponse.json({ error: "Too many requests. Please wait." }, { status: 429 });
+  }
 
   const review = await prisma.review.findUnique({ where: { id: rid } });
   if (!review || review.deletedAt) {

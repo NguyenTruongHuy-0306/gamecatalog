@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { requireAuth } from "@/lib/api-helpers";
+import { requireAuth, getClientIp } from "@/lib/api-helpers";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const schema = z.object({
   currentPassword: z.string().min(1),
@@ -12,6 +13,12 @@ const schema = z.object({
 export async function POST(request: NextRequest) {
   const { session, error } = await requireAuth();
   if (error) return error;
+
+  const ip = getClientIp(request);
+  const rateLimit = await checkRateLimit(`ip:${ip}:${session!.user.id}`, "change-password", 5, 3600);
+  if (!rateLimit.allowed) {
+    return NextResponse.json({ error: "Too many attempts. Please wait an hour." }, { status: 429 });
+  }
 
   let body: unknown;
   try {

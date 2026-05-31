@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   const { error } = await requireAdmin();
   if (error) return error;
 
-  const page = parseInt(request.nextUrl.searchParams.get("page") ?? "1", 10);
+  const page = Math.max(1, parseInt(request.nextUrl.searchParams.get("page") ?? "1", 10) || 1);
   const filter = request.nextUrl.searchParams.get("filter") ?? "flagged"; // "all" | "flagged"
   const q = request.nextUrl.searchParams.get("q") ?? "";
   const limit = 20;

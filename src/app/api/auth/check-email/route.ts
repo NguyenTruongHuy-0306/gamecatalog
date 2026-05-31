@@ -25,7 +25,7 @@ export async function hasMxRecord(domain: string): Promise<boolean> {
 
 export async function GET(request: NextRequest) {
   const ip = getClientIp(request);
-  const rateLimit = await checkRateLimit(`ip:${ip}`, "check-email", 30, 60);
+  const rateLimit = await checkRateLimit(`ip:${ip}`, "check-email", 10, 300);
   if (!rateLimit.allowed) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }

@@ -25,14 +25,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         const parsed = loginSchema.safeParse(credentials);
         if (!parsed.success) {
-          console.error("[authorize] schema invalid", parsed.error.issues);
           return null;
         }
 
         if (parsed.data.recaptchaToken) {
           const recaptchaOk = await verifyRecaptcha(parsed.data.recaptchaToken);
           if (!recaptchaOk) {
-            console.error("[authorize] recaptcha failed for", parsed.data.email);
             return null;
           }
         }
@@ -40,26 +38,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const email = parsed.data.email.toLowerCase();
         const user = await prisma.user.findUnique({ where: { email } });
 
-        if (!user) {
-          console.error("[authorize] user not found:", email);
-          return null;
-        }
-        if (!user.passwordHash) {
-          console.error("[authorize] no password hash (google-only account?):", email);
-          return null;
-        }
-        if (user.isBanned) {
-          console.error("[authorize] account banned:", email);
-          return null;
-        }
-        if (user.deletedAt) {
-          console.error("[authorize] account deleted:", email);
+        if (!user || !user.passwordHash || user.isBanned || user.deletedAt) {
           return null;
         }
 
         const valid = await bcrypt.compare(parsed.data.password, user.passwordHash);
         if (!valid) {
-          console.error("[authorize] wrong password for:", email);
           return null;
         }
 

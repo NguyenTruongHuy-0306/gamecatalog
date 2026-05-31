@@ -2,6 +2,28 @@ import { NextRequest, NextResponse } from "next/server";
 import { cloudinary, isConfigured } from "@/lib/cloudinary";
 import { requireAdmin } from "@/lib/api-helpers";
 
+function isSafeImageUrl(urlStr: string): boolean {
+  let url: URL;
+  try {
+    url = new URL(urlStr);
+  } catch {
+    return false;
+  }
+  if (url.protocol !== "https:") return false;
+  const h = url.hostname;
+  if (h === "localhost" || h === "127.0.0.1" || h === "::1") return false;
+  const ipv4 = h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (ipv4) {
+    const [a, b] = [Number(ipv4[1]), Number(ipv4[2])];
+    if (a === 10) return false;
+    if (a === 172 && b >= 16 && b <= 31) return false;
+    if (a === 192 && b === 168) return false;
+    if (a === 169 && b === 254) return false;
+    if (a === 0) return false;
+  }
+  return true;
+}
+
 const FOLDER = "gamecatalog/covers";
 const MAX_BYTES = 5_000_000;
 const UPLOAD_OPTIONS = {
@@ -32,6 +54,9 @@ export async function POST(request: NextRequest) {
     }
     if (!body.url || typeof body.url !== "string") {
       return NextResponse.json({ error: "url is required" }, { status: 400 });
+    }
+    if (!isSafeImageUrl(body.url)) {
+      return NextResponse.json({ error: "Invalid or disallowed URL" }, { status: 400 });
     }
     try {
       const result = await cloudinary.uploader.upload(body.url, UPLOAD_OPTIONS);
