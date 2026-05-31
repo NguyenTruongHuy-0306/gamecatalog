@@ -20,7 +20,7 @@ export async function checkRateLimit(
 
     await tx.rateLimitLog.create({ data: { identifier, action } });
     return { allowed: true };
-  }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+  }, { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted });
 }
 
 export async function cleanupRateLimitLogs(olderThanHours = 24) {
