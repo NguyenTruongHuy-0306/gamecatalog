@@ -58,8 +58,11 @@ export async function DELETE(request: NextRequest, { params }: Params) {
   if (error) return error;
 
   const ip = getClientIp(request);
-  const rateLimit = await checkRateLimit(`ip:${ip}`, "delete-review", 20, 60);
-  if (!rateLimit.allowed) {
+  const [ipLimit, userLimit] = await Promise.all([
+    checkRateLimit(`ip:${ip}`, "delete-review", 20, 60),
+    checkRateLimit(`user:${session!.user.id}`, "delete-review-user", 10, 3600),
+  ]);
+  if (!ipLimit.allowed || !userLimit.allowed) {
     return NextResponse.json({ error: "Too many requests. Please wait." }, { status: 429 });
   }
 

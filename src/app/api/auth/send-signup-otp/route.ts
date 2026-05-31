@@ -54,6 +54,19 @@ export async function POST(request: NextRequest) {
 
   // Create (or reuse) a pending user row so the OTP token has a valid userId FK.
   // Pending users have no passwordHash and no emailVerified — they're completed in /api/auth/signup.
+
+  // Clean up abandoned pending users older than 7 days (fire-and-forget)
+  prisma.user
+    .deleteMany({
+      where: {
+        username: { startsWith: "pending_" },
+        emailVerified: null,
+        passwordHash: null,
+        createdAt: { lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+      },
+    })
+    .catch(() => undefined);
+
   let pendingUser = await prisma.user.findFirst({
     where: { email, emailVerified: null, passwordHash: null },
     select: { id: true },

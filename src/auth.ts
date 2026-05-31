@@ -6,6 +6,8 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { verifyRecaptcha } from "@/lib/recaptcha";
 import { generateRawToken } from "@/lib/token";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { getClientIp } from "@/lib/api-helpers";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -22,9 +24,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: "Password", type: "password" },
         recaptchaToken: { label: "reCAPTCHA", type: "text" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         const parsed = loginSchema.safeParse(credentials);
         if (!parsed.success) {
+          return null;
+        }
+
+        // Rate limit by IP (10 attempts / 5 min) and by email (5 attempts / 10 min)
+        const ip = getClientIp(request as Request);
+        const email = parsed.data.email.toLowerCase();
+        const [ipLimit, emailLimit] = await Promise.all([
+          checkRateLimit(`ip:${ip}`, "login", 10, 300),
+          checkRateLimit(`email:${email}`, "login", 5, 600),
+        ]);
+        if (!ipLimit.allowed || !emailLimit.allowed) {
           return null;
         }
 
@@ -34,8 +47,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             return null;
           }
         }
-
-        const email = parsed.data.email.toLowerCase();
         const user = await prisma.user.findUnique({ where: { email } });
 
         if (!user || !user.passwordHash || user.isBanned || user.deletedAt) {

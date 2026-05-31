@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { requireVerifiedAuth } from "@/lib/api-helpers";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const schema = z.object({
   reason: z.string().max(500).optional(),
@@ -13,6 +14,11 @@ export async function POST(request: NextRequest, { params }: Params) {
   const { rid } = await params;
   const { session, error } = await requireVerifiedAuth();
   if (error) return error;
+
+  const rateLimit = await checkRateLimit(`user:${session!.user.id}`, "flag-review", 10, 3600);
+  if (!rateLimit.allowed) {
+    return NextResponse.json({ error: "Too many flag requests. Please slow down." }, { status: 429 });
+  }
 
   let body: unknown;
   try {

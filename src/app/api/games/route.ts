@@ -98,7 +98,19 @@ const createSchema = z.object({
   publisher: z.string().max(255).optional(),
   qualityTier: z.enum(["AAA", "indie", "free-to-play"]).optional(),
   youtubeVideoId: z.string().max(20).optional(),
-  coverImageUrl: z.string().url().optional(),
+  coverImageUrl: z
+    .string()
+    .url()
+    .refine((url) => {
+      try {
+        const { hostname } = new URL(url);
+        const allowed = ["images.igdb.com", "res.cloudinary.com", "img.youtube.com"];
+        return allowed.some((h) => hostname === h || hostname.endsWith(`.${h}`));
+      } catch {
+        return false;
+      }
+    }, "Cover image must be from an allowed domain (IGDB, Cloudinary, YouTube)")
+    .optional(),
   isPublished: z.boolean().optional().default(false),
   genreIds: z.array(z.string().uuid()).optional().default([]),
 });
