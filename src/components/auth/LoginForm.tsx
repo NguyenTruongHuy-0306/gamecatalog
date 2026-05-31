@@ -15,7 +15,7 @@ import { Eye, EyeOff } from "lucide-react";
 export function LoginForm({ googleEnabled }: { googleEnabled?: boolean }) {
   const router = useRouter();
   const { executeRecaptcha } = useGoogleReCaptcha();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -35,7 +35,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled?: boolean }) {
     const recaptchaToken = await executeRecaptcha("login");
 
     const result = await signIn("credentials", {
-      email,
+      username,
       password,
       recaptchaToken,
       redirect: false,
@@ -44,7 +44,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled?: boolean }) {
     setLoading(false);
 
     if (result?.error) {
-      setError("Invalid email or password.");
+      setError("Invalid username or password.");
     } else {
       router.push("/");
       router.refresh();
@@ -98,13 +98,13 @@ export function LoginForm({ googleEnabled }: { googleEnabled?: boolean }) {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="username">Username</Label>
           <Input
-            id="email"
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            id="username"
+            type="text"
+            autoComplete="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             required
             disabled={loading}
           />
