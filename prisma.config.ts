@@ -12,6 +12,8 @@ export default defineConfig({
     seed: "tsx prisma/seed.ts",
   },
   datasource: {
-    url: process.env.DATABASE_URL,
+    // Migrations require a direct (non-pooled) connection for advisory lock support.
+    // Set DIRECT_DATABASE_URL to the Neon direct URL (hostname without -pooler).
+    url: process.env.DIRECT_DATABASE_URL ?? process.env.DATABASE_URL,
   },
 });
