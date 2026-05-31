@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff } from "lucide-react";
 import { apiError } from "@/lib/client-error";
+import { CaptchaChallenge } from "@/components/auth/CaptchaChallenge";
 
 export function CompleteProfileForm() {
   const { data: session, update } = useSession();
@@ -21,6 +22,7 @@ export function CompleteProfileForm() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [captcha, setCaptcha] = useState<{ input: string; token: string } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,16 +33,22 @@ export function CompleteProfileForm() {
       return;
     }
 
+    if (!captcha) {
+      setError("Please complete the security code verification.");
+      return;
+    }
+
     setLoading(true);
     const res = await fetch("/api/auth/complete-profile", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username, password, captchaInput: captcha.input, captchaToken: captcha.token }),
     });
     const data = await res.json();
 
     if (!res.ok) {
       setLoading(false);
+      setCaptcha(null);
       setError(apiError(data, "Something went wrong. Please try again."));
       return;
     }
@@ -128,13 +136,19 @@ export function CompleteProfileForm() {
           </div>
         </div>
 
+        <CaptchaChallenge
+          onVerified={(input, token) => setCaptcha({ input, token })}
+          onReset={() => setCaptcha(null)}
+          disabled={loading}
+        />
+
         {error && (
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
-        <Button type="submit" className="w-full" disabled={loading}>
+        <Button type="submit" className="w-full" disabled={loading || !captcha}>
           {loading ? "Saving…" : "Complete Registration"}
         </Button>
       </form>

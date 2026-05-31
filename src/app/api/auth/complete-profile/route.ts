@@ -3,6 +3,7 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/api-helpers";
+import { verifyCaptchaToken } from "@/lib/captcha";
 
 const schema = z.object({
   username: z
@@ -14,6 +15,8 @@ const schema = z.object({
     .string()
     .min(8, "Password must be at least 8 characters")
     .max(100, "Password too long"),
+  captchaInput: z.string().min(1),
+  captchaToken: z.string().min(1),
 });
 
 export async function POST(request: NextRequest) {
@@ -41,7 +44,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
   }
 
-  const { username, password } = parsed.data;
+  const { username, password, captchaInput, captchaToken } = parsed.data;
+
+  if (!verifyCaptchaToken(captchaInput, captchaToken)) {
+    return NextResponse.json({ error: "Invalid security code. Please try again." }, { status: 400 });
+  }
 
   const conflict = await prisma.user.findFirst({
     where: {

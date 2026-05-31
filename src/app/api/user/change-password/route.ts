@@ -4,10 +4,13 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { requireAuth, getClientIp } from "@/lib/api-helpers";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { verifyCaptchaToken } from "@/lib/captcha";
 
 const schema = z.object({
   currentPassword: z.string().min(1),
   newPassword: z.string().min(8).max(100),
+  captchaInput: z.string().min(1),
+  captchaToken: z.string().min(1),
 });
 
 export async function POST(request: NextRequest) {
@@ -30,6 +33,10 @@ export async function POST(request: NextRequest) {
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
+  }
+
+  if (!verifyCaptchaToken(parsed.data.captchaInput, parsed.data.captchaToken)) {
+    return NextResponse.json({ error: "Invalid security code. Please try again." }, { status: 400 });
   }
 
   const user = await prisma.user.findUnique({

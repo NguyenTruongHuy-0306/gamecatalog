@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { Eye, EyeOff, User, Lock, Mail, AtSign, FileText, CheckCircle2 } from "lucide-react";
 import { AvatarUpload } from "@/components/shared/AvatarUpload";
+import { CaptchaChallenge } from "@/components/auth/CaptchaChallenge";
 
 function EyeButton({ show, onToggle }: { show: boolean; onToggle: () => void }) {
   return (
@@ -39,6 +40,7 @@ export default function SettingsPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [passwordError, setPasswordError] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [pwdCaptcha, setPwdCaptcha] = useState<{ input: string; token: string } | null>(null);
 
   useEffect(() => {
     fetch("/api/user/profile").then((r) => r.json()).then((data) => {
@@ -69,17 +71,18 @@ export default function SettingsPage() {
     setPasswordError("");
     if (newPassword !== confirm) { setPasswordError("Passwords do not match."); return; }
     if (newPassword.length < 8) { setPasswordError("New password must be at least 8 characters."); return; }
+    if (!pwdCaptcha) { setPasswordError("Please complete the security code verification."); return; }
     setPasswordLoading(true);
     const res = await fetch("/api/user/change-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ currentPassword, newPassword }),
+      body: JSON.stringify({ currentPassword, newPassword, captchaInput: pwdCaptcha.input, captchaToken: pwdCaptcha.token }),
     });
     const data = await res.json();
     setPasswordLoading(false);
-    if (!res.ok) { setPasswordError(apiError(data, "Failed to change password.")); return; }
+    if (!res.ok) { setPwdCaptcha(null); setPasswordError(apiError(data, "Failed to change password.")); return; }
     toast.success("Password updated successfully");
-    setCurrentPassword(""); setNewPassword(""); setConfirm("");
+    setCurrentPassword(""); setNewPassword(""); setConfirm(""); setPwdCaptcha(null);
   };
 
   return (
@@ -227,13 +230,19 @@ export default function SettingsPage() {
               </div>
             )}
 
+            <CaptchaChallenge
+              onVerified={(input, token) => setPwdCaptcha({ input, token })}
+              onReset={() => setPwdCaptcha(null)}
+              disabled={passwordLoading}
+            />
+
             {passwordError && (
               <Alert variant="destructive" className="py-2">
                 <AlertDescription>{passwordError}</AlertDescription>
               </Alert>
             )}
 
-            <Button type="submit" disabled={passwordLoading}
+            <Button type="submit" disabled={passwordLoading || !pwdCaptcha}
               className="gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all">
               {passwordLoading ? "Updating…" : "Update Password"}
             </Button>
