@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,12 +19,17 @@ export function CaptchaChallenge({ onVerified, onReset, disabled }: Props) {
   const [fetching, setFetching] = useState(true);
   const [verified, setVerified] = useState(false);
 
+  // Keep onReset in a ref so fetchCaptcha stays stable and doesn't
+  // re-trigger the mount effect when the parent re-renders.
+  const onResetRef = useRef(onReset);
+  useEffect(() => { onResetRef.current = onReset; });
+
   const fetchCaptcha = useCallback(async () => {
     setFetching(true);
     setInput("");
     setError(false);
     setVerified(false);
-    onReset();
+    onResetRef.current();
     try {
       const res = await fetch("/api/auth/captcha");
       const data = await res.json();
@@ -33,7 +38,7 @@ export function CaptchaChallenge({ onVerified, onReset, disabled }: Props) {
     } finally {
       setFetching(false);
     }
-  }, [onReset]);
+  }, []); // stable — onReset accessed via ref
 
   useEffect(() => { fetchCaptcha(); }, [fetchCaptcha]);
 
