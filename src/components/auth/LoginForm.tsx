@@ -47,6 +47,12 @@ export function LoginForm({ googleEnabled }: { googleEnabled?: boolean }) {
     setLoading(false);
 
     if (result?.error) {
+      const res = await fetch(`/api/auth/check-username?username=${encodeURIComponent(username)}`);
+      const data = await res.json();
+      if (!data.exists) {
+        router.push("/signup");
+        return;
+      }
       setError("Invalid username or password.");
     } else {
       router.push("/");
