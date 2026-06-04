@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff } from "lucide-react";
 import { apiError } from "@/lib/client-error";
 import { CaptchaChallenge } from "@/components/auth/CaptchaChallenge";
+import { PasswordStrengthMeter, getPasswordStrength, hasSpecialChar } from "@/components/auth/PasswordStrengthMeter";
 
 export function CompleteProfileForm() {
   const { data: session, update } = useSession();
@@ -30,6 +31,16 @@ export function CompleteProfileForm() {
 
     if (password !== confirm) {
       setError("Passwords do not match.");
+      return;
+    }
+
+    if (!hasSpecialChar(password)) {
+      setError("Password must include at least one special character (@, #, $, etc.).");
+      return;
+    }
+
+    if (getPasswordStrength(password) === "weak") {
+      setError("Password is too weak. Use a mix of uppercase, lowercase, numbers, and special characters.");
       return;
     }
 
@@ -109,6 +120,7 @@ export function CompleteProfileForm() {
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
+          <PasswordStrengthMeter password={password} />
         </div>
 
         <div className="space-y-1.5">

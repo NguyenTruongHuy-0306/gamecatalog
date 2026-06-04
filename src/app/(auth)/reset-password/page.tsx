@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff } from "lucide-react";
+import { PasswordStrengthMeter, getPasswordStrength, hasSpecialChar } from "@/components/auth/PasswordStrengthMeter";
 
 function ResetPasswordContent() {
   const searchParams = useSearchParams();
@@ -26,6 +27,8 @@ function ResetPasswordContent() {
     e.preventDefault();
     setError("");
     if (password !== confirm) { setError("Passwords do not match."); return; }
+    if (!hasSpecialChar(password)) { setError("Password must include at least one special character (@, #, $, etc.)."); return; }
+    if (getPasswordStrength(password) === "weak") { setError("Password is too weak. Use a mix of uppercase, lowercase, numbers, and special characters."); return; }
     if (!token) { setError("Invalid reset link."); return; }
 
     setLoading(true);
@@ -77,6 +80,7 @@ function ResetPasswordContent() {
             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </div>
+        <PasswordStrengthMeter password={password} />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="confirm">Confirm Password</Label>

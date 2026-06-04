@@ -9,7 +9,8 @@ const schema = z.object({
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")
-    .max(100, "Password too long"),
+    .max(100, "Password too long")
+    .regex(/[@#$!%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, "Password must include at least one special character (@, #, $, etc.)"),
 });
 
 export async function POST(request: NextRequest) {
