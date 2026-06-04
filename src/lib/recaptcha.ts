@@ -13,10 +13,11 @@ export async function verifyRecaptcha(token: string): Promise<boolean> {
     });
     if (!res.ok) return false;
     const data = await res.json();
+    console.log("[recaptcha]", JSON.stringify({ success: data.success, score: data.score, action: data.action, errorCodes: data["error-codes"] }));
     if (data.success !== true) return false;
     return (data.score ?? 0) >= SCORE_THRESHOLD;
-  } catch {
-    // Network error reaching Google — fail closed to prevent bypass during outages
+  } catch (err) {
+    console.error("[recaptcha] network error:", err);
     return false;
   }
 }
