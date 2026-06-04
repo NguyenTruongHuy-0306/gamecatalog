@@ -4,6 +4,8 @@ import { NextResponse } from "next/server";
 
 const { auth } = NextAuth(authConfig);
 
+const AUTH_ONLY_ROUTES = ["/login", "/signup", "/forgot-password", "/reset-password", "/verify-email"];
+
 export default auth((req) => {
   const { nextUrl, auth: session } = req;
   const { pathname } = nextUrl;
@@ -11,6 +13,11 @@ export default auth((req) => {
   // Logged-in Google users who haven't set a username/password yet must complete setup
   if (session?.user?.needsSetup && !pathname.startsWith("/complete-profile")) {
     return NextResponse.redirect(new URL("/complete-profile", nextUrl));
+  }
+
+  // Redirect authenticated users away from auth-only pages
+  if (session?.user && AUTH_ONLY_ROUTES.some((r) => pathname.startsWith(r))) {
+    return NextResponse.redirect(new URL("/", nextUrl));
   }
 
   // /complete-profile is only for logged-in users awaiting setup
