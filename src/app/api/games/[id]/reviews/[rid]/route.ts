@@ -4,6 +4,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { requireAuth, getClientIp } from "@/lib/api-helpers";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { containsMaliciousLinks } from "@/lib/spam-scanner";
 
 const updateSchema = z.object({
   rating: z.number().int().min(1).max(5).optional(),
@@ -38,6 +39,20 @@ export async function PUT(request: NextRequest, { params }: Params) {
   const parsed = updateSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
+  }
+
+  if (parsed.data.body) {
+    const malicious = await containsMaliciousLinks(parsed.data.body);
+    if (malicious) {
+      await prisma.user.update({
+        where: { id: session!.user.id },
+        data: { isBanned: true },
+      });
+      return NextResponse.json(
+        { error: "Your account has been suspended for posting malicious content." },
+        { status: 403 }
+      );
+    }
   }
 
   const updated = await prisma.review.update({

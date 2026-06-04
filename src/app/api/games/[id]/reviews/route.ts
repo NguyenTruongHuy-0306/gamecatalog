@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { requireVerifiedAuth } from "@/lib/api-helpers";
 import { verifyRecaptcha } from "@/lib/recaptcha";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { containsMaliciousLinks } from "@/lib/spam-scanner";
 
 const createSchema = z.object({
   rating: z.number().int().min(1).max(5),
@@ -88,6 +89,21 @@ export async function POST(
       { error: "CAPTCHA verification failed. Please try again." },
       { status: 403 }
     );
+  }
+
+  // Gate 6: Malware/spam link scan
+  if (parsed.data.body) {
+    const malicious = await containsMaliciousLinks(parsed.data.body);
+    if (malicious) {
+      await prisma.user.update({
+        where: { id: session!.user.id },
+        data: { isBanned: true },
+      });
+      return NextResponse.json(
+        { error: "Your account has been suspended for posting malicious content." },
+        { status: 403 }
+      );
+    }
   }
 
   const game = await prisma.game.findFirst({
