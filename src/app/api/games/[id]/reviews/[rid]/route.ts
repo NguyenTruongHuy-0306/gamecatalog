@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { requireAuth, getClientIp } from "@/lib/api-helpers";
@@ -77,12 +78,13 @@ export async function DELETE(request: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  await prisma.review.update({
-    where: { id: rid },
-    data: { deletedAt: new Date() },
-  });
+  const [game] = await Promise.all([
+    prisma.game.findUnique({ where: { id: review.gameId }, select: { slug: true } }),
+    prisma.review.update({ where: { id: rid }, data: { deletedAt: new Date() } }),
+  ]);
 
   await recalculateRating(review.gameId);
+  if (game) revalidatePath(`/games/${game.slug}`);
 
   return NextResponse.json({ message: "Review deleted" });
 }
