@@ -10,55 +10,64 @@ const links = [
 
 export function Footer() {
   return (
-    <footer className="mt-auto border-t bg-muted/10 bg-grid relative overflow-hidden">
-      {/* Fade overlay over grid */}
-      <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-background/20 pointer-events-none" aria-hidden="true" />
+    <footer className="relative overflow-hidden border-t bg-card">
+      {/* Grid background */}
+      <div className="absolute inset-0 bg-grid opacity-40" aria-hidden="true" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-card/80" aria-hidden="true" />
 
-      <div className="relative mx-auto max-w-7xl px-4 py-12">
-        <div className="flex flex-col md:flex-row items-start justify-between gap-10">
+      {/* Top glow accent */}
+      <div className="absolute top-0 left-0 right-0 glow-line" aria-hidden="true" />
 
-          {/* Brand + tagline */}
-          <div className="space-y-4 max-w-xs">
-            <Link href="/" className="flex items-center gap-2.5 group w-fit">
-              <div className="flex items-center justify-center h-9 w-9 rounded-xl bg-primary text-primary-foreground shadow-sm group-hover:shadow-primary/40 group-hover:scale-105 transition-all duration-200">
-                <Gamepad2 className="h-4.5 w-4.5" aria-hidden="true" />
+      <div className="relative mx-auto max-w-7xl px-4 pt-16 pb-10">
+        <div className="grid md:grid-cols-3 gap-12 mb-14">
+
+          {/* Brand */}
+          <div className="md:col-span-2 space-y-5">
+            <Link href="/" className="flex items-center gap-3 group w-fit">
+              <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-primary text-primary-foreground shadow-md group-hover:shadow-primary/50 group-hover:scale-105 transition-all duration-300 animate-neon-pulse">
+                <Gamepad2 className="h-5 w-5" aria-hidden="true" />
               </div>
-              <span className="font-black text-xl gradient-text tracking-tight">GameCatalog</span>
+              <span className="font-black text-2xl gradient-text tracking-tight">GameCatalog</span>
             </Link>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-sm">
               Community-powered game discovery. Honest ratings from real players.
+              No paywalls, no paid placements — ever.
             </p>
-            <p className="font-mono text-xs text-muted-foreground/50 uppercase tracking-widest">
-              v2.0 — Free forever
-            </p>
+            <div className="flex items-center gap-3">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="font-mono text-xs text-muted-foreground/60 uppercase tracking-widest">
+                Free forever · v2.0
+              </span>
+            </div>
           </div>
 
-          {/* Nav */}
-          <nav aria-label="Footer navigation">
-            <p className="font-mono text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4">
+          {/* Links */}
+          <div>
+            <p className="font-mono text-xs font-semibold text-muted-foreground/60 uppercase tracking-widest mb-5">
               Explore
             </p>
-            <ul className="grid grid-cols-2 gap-x-8 gap-y-2">
+            <ul className="space-y-2.5">
               {links.map(({ label, href }) => (
                 <li key={href}>
                   <Link
                     href={href}
-                    className="text-sm text-muted-foreground hover:text-foreground hover:translate-x-0.5 inline-flex items-center transition-all duration-150"
+                    className="text-sm text-muted-foreground hover:text-foreground hover:translate-x-1 inline-flex items-center gap-2 transition-all duration-150 group"
                   >
+                    <span className="h-px w-3 bg-primary/0 group-hover:bg-primary/60 group-hover:w-4 transition-all duration-200" />
                     {label}
                   </Link>
                 </li>
               ))}
             </ul>
-          </nav>
+          </div>
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-10 pt-6 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-muted-foreground">
+        <div className="border-t border-border/50 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="text-xs text-muted-foreground/60">
             © {new Date().getFullYear()} GameCatalog. All rights reserved.
           </p>
-          <p className="text-xs text-muted-foreground flex items-center gap-1">
+          <p className="text-xs text-muted-foreground/60 flex items-center gap-1.5">
             Built with <span className="text-red-500">♥</span> for gamers
           </p>
         </div>

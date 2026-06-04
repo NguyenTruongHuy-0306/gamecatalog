@@ -65,8 +65,8 @@ export function Navbar() {
     <header
       className={`sticky top-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "border-b bg-background/90 backdrop-blur-md shadow-sm shadow-primary/5"
-          : "bg-background/60 backdrop-blur-sm"
+          ? "border-b border-border/60 bg-background/90 backdrop-blur-md shadow-md shadow-primary/5"
+          : "bg-background/40 backdrop-blur-sm"
       }`}
     >
       <div className="mx-auto max-w-7xl px-4 flex h-16 items-center justify-between gap-4">
