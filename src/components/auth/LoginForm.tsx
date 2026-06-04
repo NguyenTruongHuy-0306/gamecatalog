@@ -26,13 +26,16 @@ export function LoginForm({ googleEnabled }: { googleEnabled?: boolean }) {
     e.preventDefault();
     setError("");
 
-    if (!executeRecaptcha) {
-      setError("Verification not ready. Please try again.");
-      return;
-    }
-
     setLoading(true);
-    const recaptchaToken = await executeRecaptcha("login");
+
+    let recaptchaToken = "";
+    if (executeRecaptcha) {
+      try {
+        recaptchaToken = await executeRecaptcha("login");
+      } catch {
+        // reCAPTCHA unavailable — server skips verification when token is empty
+      }
+    }
 
     const result = await signIn("credentials", {
       username,
