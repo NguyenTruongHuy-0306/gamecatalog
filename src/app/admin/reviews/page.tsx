@@ -57,7 +57,7 @@ export default function AdminReviewsPage() {
   const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const toggleOne = (id: string) =>
-    setSelected((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+    setSelected((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
 
   const handleBulkDelete = async () => {
     const ids = [...selected];

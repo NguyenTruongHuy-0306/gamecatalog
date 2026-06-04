@@ -25,10 +25,6 @@ export function CaptchaChallenge({ onVerified, onReset, disabled }: Props) {
   useEffect(() => { onResetRef.current = onReset; });
 
   const fetchCaptcha = useCallback(async () => {
-    setFetching(true);
-    setInput("");
-    setError(false);
-    setVerified(false);
     onResetRef.current();
     try {
       const res = await fetch("/api/auth/captcha");
@@ -39,6 +35,14 @@ export function CaptchaChallenge({ onVerified, onReset, disabled }: Props) {
       setFetching(false);
     }
   }, []); // stable — onReset accessed via ref
+
+  const refresh = useCallback(() => {
+    setFetching(true);
+    setInput("");
+    setError(false);
+    setVerified(false);
+    fetchCaptcha();
+  }, [fetchCaptcha]);
 
   useEffect(() => { fetchCaptcha(); }, [fetchCaptcha]);
 
@@ -53,7 +57,7 @@ export function CaptchaChallenge({ onVerified, onReset, disabled }: Props) {
         onVerified(upper, token);
       } else {
         setError(true);
-        setTimeout(() => fetchCaptcha(), 700);
+        setTimeout(() => refresh(), 700);
       }
     }
   };
@@ -72,7 +76,7 @@ export function CaptchaChallenge({ onVerified, onReset, disabled }: Props) {
         {!verified && (
           <button
             type="button"
-            onClick={fetchCaptcha}
+            onClick={refresh}
             disabled={fetching || disabled}
             className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50"
             aria-label="Get a new code"
