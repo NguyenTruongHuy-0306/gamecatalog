@@ -8,7 +8,7 @@ import { checkRateLimit } from "@/lib/rate-limit";
 const createSchema = z.object({
   rating: z.number().int().min(1).max(5),
   body: z.string().max(2000).optional(),
-  captchaToken: z.string().min(1),
+  captchaToken: z.string().optional().default(""),
 });
 
 export async function GET(

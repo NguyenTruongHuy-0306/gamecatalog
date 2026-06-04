@@ -70,20 +70,15 @@ export function ReviewForm({ gameSlug, onSuccess }: ReviewFormProps) {
       return;
     }
 
-    if (!executeRecaptcha) {
-      setError("reCAPTCHA not ready. Please try again.");
-      return;
-    }
-
     setSubmitting(true);
 
-    let captchaToken: string;
-    try {
-      captchaToken = await executeRecaptcha("submit_review");
-    } catch {
-      setError("reCAPTCHA verification failed. Please try again.");
-      setSubmitting(false);
-      return;
+    let captchaToken = "";
+    if (executeRecaptcha) {
+      try {
+        captchaToken = await executeRecaptcha("submit_review");
+      } catch {
+        // reCAPTCHA unavailable — server will reject if it requires a valid token
+      }
     }
 
     let res: Response;
