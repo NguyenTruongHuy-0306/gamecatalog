@@ -243,7 +243,7 @@ export function GameForm({ genres, initial = {} }: GameFormProps) {
           <ShoppingCart className="h-4 w-4" /> Where to Buy
         </Label>
         <div className="flex gap-2">
-          <Select value={newStore} onValueChange={setNewStore}>
+          <Select value={newStore} onValueChange={(v) => v && setNewStore(v)}>
             <SelectTrigger className="w-44">
               <SelectValue />
             </SelectTrigger>
