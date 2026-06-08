@@ -45,6 +45,7 @@ export default async function AdminEditGamePage({ params }: PageProps) {
             coverImageUrl: game.coverImageUrl ?? undefined,
             isPublished: game.isPublished,
             selectedGenreIds: game.gameGenres.map((gg) => gg.genreId),
+            purchaseLinks: (game.purchaseLinks as { store: string; url: string }[]) ?? [],
           }}
         />
       </div>

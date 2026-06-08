@@ -53,6 +53,9 @@ const updateSchema = z.object({
   coverImageUrl: z.string().url().nullable().optional(),
   isPublished: z.boolean().optional(),
   genreIds: z.array(z.string().uuid()).optional(),
+  purchaseLinks: z
+    .array(z.object({ store: z.string().min(1).max(50), url: z.string().url() }))
+    .optional(),
 });
 
 export async function PUT(

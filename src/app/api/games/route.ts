@@ -113,6 +113,10 @@ const createSchema = z.object({
     .optional(),
   isPublished: z.boolean().optional().default(false),
   genreIds: z.array(z.string().uuid()).optional().default([]),
+  purchaseLinks: z
+    .array(z.object({ store: z.string().min(1).max(50), url: z.string().url() }))
+    .optional()
+    .default([]),
 });
 
 export async function POST(request: NextRequest) {

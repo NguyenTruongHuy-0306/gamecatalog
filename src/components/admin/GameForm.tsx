@@ -16,7 +16,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { X } from "lucide-react";
+import { X, Plus, ShoppingCart } from "lucide-react";
 import { CoverImageInput } from "@/components/admin/CoverImageInput";
 import { apiError } from "@/lib/client-error";
 
@@ -24,6 +24,11 @@ interface Genre {
   id: string;
   name: string;
   slug: string;
+}
+
+interface PurchaseLink {
+  store: string;
+  url: string;
 }
 
 interface GameFormProps {
@@ -41,8 +46,22 @@ interface GameFormProps {
     coverImageUrl?: string;
     isPublished?: boolean;
     selectedGenreIds?: string[];
+    purchaseLinks?: PurchaseLink[];
   };
 }
+
+const KNOWN_STORES = [
+  "Steam",
+  "Epic Games",
+  "GOG",
+  "PlayStation Store",
+  "Xbox",
+  "Nintendo eShop",
+  "EA App",
+  "Battle.net",
+  "Humble Bundle",
+  "Other",
+];
 
 function slugify(str: string) {
   return str.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -87,6 +106,9 @@ export function GameForm({ genres, initial = {} }: GameFormProps) {
   const [coverImageUrl, setCoverImageUrl] = useState(initial.coverImageUrl ?? "");
   const [isPublished, setIsPublished] = useState(initial.isPublished ?? false);
   const [selectedGenreIds, setSelectedGenreIds] = useState<string[]>(initial.selectedGenreIds ?? []);
+  const [purchaseLinks, setPurchaseLinks] = useState<PurchaseLink[]>(initial.purchaseLinks ?? []);
+  const [newStore, setNewStore] = useState("Steam");
+  const [newUrl, setNewUrl] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -130,6 +152,7 @@ export function GameForm({ genres, initial = {} }: GameFormProps) {
       coverImageUrl: resolvedCoverUrl || undefined,
       isPublished,
       genreIds: selectedGenreIds,
+      purchaseLinks,
     };
 
     const url = isEdit ? `/api/games/${initial.id}` : "/api/games";
@@ -212,6 +235,63 @@ export function GameForm({ genres, initial = {} }: GameFormProps) {
           <Label>Cover Image</Label>
           <CoverImageInput value={coverImageUrl} onChange={setCoverImageUrl} disabled={loading} />
         </div>
+      </div>
+
+      {/* Purchase links */}
+      <div className="space-y-2">
+        <Label className="flex items-center gap-1.5">
+          <ShoppingCart className="h-4 w-4" /> Where to Buy
+        </Label>
+        <div className="flex gap-2">
+          <Select value={newStore} onValueChange={setNewStore}>
+            <SelectTrigger className="w-44">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {KNOWN_STORES.map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input
+            placeholder="https://store.steampowered.com/app/..."
+            value={newUrl}
+            onChange={(e) => setNewUrl(e.target.value)}
+            disabled={loading}
+            className="flex-1"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            disabled={loading || !newUrl}
+            onClick={() => {
+              const trimmed = newUrl.trim();
+              if (!trimmed) return;
+              setPurchaseLinks((prev) => [...prev, { store: newStore, url: trimmed }]);
+              setNewUrl("");
+            }}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+        {purchaseLinks.length > 0 && (
+          <ul className="space-y-1.5 mt-1">
+            {purchaseLinks.map((link, i) => (
+              <li key={i} className="flex items-center gap-2 text-sm bg-muted/40 rounded-lg px-3 py-1.5">
+                <span className="font-medium w-32 shrink-0">{link.store}</span>
+                <span className="flex-1 truncate text-muted-foreground">{link.url}</span>
+                <button
+                  type="button"
+                  onClick={() => setPurchaseLinks((prev) => prev.filter((_, j) => j !== i))}
+                  className="shrink-0 text-muted-foreground hover:text-destructive"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="space-y-2">

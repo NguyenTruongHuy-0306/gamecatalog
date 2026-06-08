@@ -73,6 +73,7 @@ model Game {
   qualityTier    String?
   youtubeVideoId String?
   coverImageUrl  String?
+  purchaseLinks  Json      @default("[]")
   avgRating      Float     @default(0)
   reviewCount    Int       @default(0)
   isPublished    Boolean   @default(false)

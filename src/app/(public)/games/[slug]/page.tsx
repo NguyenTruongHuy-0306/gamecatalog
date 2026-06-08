@@ -10,7 +10,7 @@ import { StarDisplay } from "@/components/shared/StarDisplay";
 import { GenreBadge } from "@/components/shared/GenreBadge";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, User2, Building2, Layers, MessageSquare, History } from "lucide-react";
+import { Calendar, User2, Building2, Layers, MessageSquare, History, ShoppingCart, ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
 
 interface PageProps {
@@ -193,6 +193,29 @@ export default async function GameDetailPage({ params }: PageProps) {
                 ))}
             </div>
           </div>
+
+          {/* Where to buy card */}
+          {Array.isArray(game.purchaseLinks) && game.purchaseLinks.length > 0 && (
+            <div className="rounded-2xl border bg-card p-4 space-y-3">
+              <h3 className="font-semibold text-sm flex items-center gap-2">
+                <ShoppingCart className="h-4 w-4 text-primary" /> Where to Buy
+              </h3>
+              <div className="space-y-2">
+                {(game.purchaseLinks as { store: string; url: string }[]).map((link, i) => (
+                  <a
+                    key={i}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between w-full rounded-lg border bg-muted/30 hover:bg-muted/60 px-3 py-2 text-sm font-medium transition-colors group"
+                  >
+                    <span>{link.store}</span>
+                    <ExternalLink className="h-3.5 w-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Version history card */}
           <div className="rounded-2xl border bg-card p-4 space-y-3">
