@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Gamepad2, Menu, X, User, Settings, LayoutDashboard, LogOut, Search } from "lucide-react";
+import { Gamepad2, Menu, X, User, Settings, LayoutDashboard, LogOut, Search, MessageSquare } from "lucide-react";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import useSWR from "swr";
 
@@ -90,6 +90,13 @@ export function Navbar() {
             className="relative px-3 py-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-all duration-150 group shrink-0"
           >
             Browse
+            <span className="absolute bottom-0.5 left-3 right-3 h-0.5 rounded-full bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left" />
+          </Link>
+          <Link
+            href="/forum"
+            className="relative px-3 py-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-all duration-150 group shrink-0"
+          >
+            Forum
             <span className="absolute bottom-0.5 left-3 right-3 h-0.5 rounded-full bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left" />
           </Link>
 
@@ -220,6 +227,13 @@ export function Navbar() {
             onClick={() => setMobileOpen(false)}
           >
             Browse Games
+          </Link>
+          <Link
+            href="/forum"
+            className="px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-accent transition-colors flex items-center gap-2"
+            onClick={() => setMobileOpen(false)}
+          >
+            <MessageSquare className="h-4 w-4" /> Forum
           </Link>
           {session?.user ? (
             <>

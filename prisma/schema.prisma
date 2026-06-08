@@ -33,6 +33,8 @@ model User {
   flaggedReviews     Review[]            @relation("ReviewFlaggedBy")
   verificationTokens VerificationToken[]
   favorites          Favorite[]
+  forumThreads       ForumThread[]       @relation("ForumThreadAuthor")
+  forumPosts         ForumPost[]         @relation("ForumPostAuthor")
 
   @@map("users")
 }
@@ -157,6 +159,45 @@ model Favorite {
   @@id([userId, gameId])
   @@index([userId])
   @@map("favorites")
+}
+
+model ForumThread {
+  id         String    @id @default(uuid())
+  title      String
+  body       String
+  category   String
+  authorId   String
+  isPinned   Boolean   @default(false)
+  isLocked   Boolean   @default(false)
+  lastPostAt DateTime  @default(now())
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+
+  author User        @relation("ForumThreadAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  posts  ForumPost[]
+
+  @@index([category])
+  @@index([lastPostAt(sort: Desc)])
+  @@index([authorId])
+  @@map("forum_threads")
+}
+
+model ForumPost {
+  id        String    @id @default(uuid())
+  body      String
+  threadId  String
+  authorId  String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  thread ForumThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  author User        @relation("ForumPostAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([threadId])
+  @@index([authorId])
+  @@map("forum_posts")
 }
 
 model RateLimitLog {
