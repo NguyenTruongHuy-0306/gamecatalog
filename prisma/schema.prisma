@@ -80,6 +80,8 @@ model Game {
   avgRating      Float     @default(0)
   reviewCount    Int       @default(0)
   isPublished    Boolean   @default(false)
+  igdbId         Int?      @unique @map("igdb_id")
+  lockedFields   String[]  @default([]) @map("locked_fields")
   createdById    String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
@@ -220,6 +222,15 @@ model ForumPost {
   @@index([threadId])
   @@index([authorId])
   @@map("forum_posts")
+}
+
+model IgdbSyncState {
+  id             Int       @id
+  lastSyncedAt   Int       @default(0) @map("last_synced_at")
+  accessToken    String?   @map("access_token")
+  tokenExpiresAt DateTime? @map("token_expires_at")
+
+  @@map("igdb_sync_state")
 }
 
 model RateLimitLog {

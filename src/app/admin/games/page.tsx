@@ -31,6 +31,7 @@ export default async function AdminGamesPage({ searchParams }: PageProps) {
     select: {
       id: true, title: true, slug: true, releaseYear: true,
       qualityTier: true, avgRating: true, reviewCount: true, isPublished: true,
+      igdbId: true,
     },
     orderBy: getOrderBy(sort, dir),
   });

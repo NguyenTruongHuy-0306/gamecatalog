@@ -16,7 +16,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { X, Plus, ShoppingCart } from "lucide-react";
+import { X, Plus, ShoppingCart, Lock, LockOpen } from "lucide-react";
 import { CoverImageInput } from "@/components/admin/CoverImageInput";
 import { apiError } from "@/lib/client-error";
 
@@ -30,6 +30,17 @@ interface PurchaseLink {
   store: string;
   url: string;
 }
+
+const LOCKABLE_FIELDS = [
+  { key: "title",        label: "Title" },
+  { key: "slug",         label: "Slug" },
+  { key: "description",  label: "Description" },
+  { key: "coverImageUrl",label: "Cover" },
+  { key: "releaseYear",  label: "Year" },
+  { key: "developer",    label: "Developer" },
+  { key: "publisher",    label: "Publisher" },
+  { key: "genres",       label: "Genres" },
+] as const;
 
 interface GameFormProps {
   genres: Genre[];
@@ -47,6 +58,8 @@ interface GameFormProps {
     isPublished?: boolean;
     selectedGenreIds?: string[];
     purchaseLinks?: PurchaseLink[];
+    igdbId?: number | null;
+    lockedFields?: string[];
   };
 }
 
@@ -107,6 +120,10 @@ export function GameForm({ genres, initial = {} }: GameFormProps) {
   const [isPublished, setIsPublished] = useState(initial.isPublished ?? false);
   const [selectedGenreIds, setSelectedGenreIds] = useState<string[]>(initial.selectedGenreIds ?? []);
   const [purchaseLinks, setPurchaseLinks] = useState<PurchaseLink[]>(initial.purchaseLinks ?? []);
+  const [igdbId, setIgdbId] = useState(initial.igdbId != null ? String(initial.igdbId) : "");
+  const [lockedFields, setLockedFields] = useState<Set<string>>(
+    new Set(initial.lockedFields ?? [])
+  );
   const [newStore, setNewStore] = useState("Steam");
   const [newUrl, setNewUrl] = useState("");
   const [error, setError] = useState("");
@@ -153,6 +170,8 @@ export function GameForm({ genres, initial = {} }: GameFormProps) {
       isPublished,
       genreIds: selectedGenreIds,
       purchaseLinks,
+      igdbId: igdbId ? parseInt(igdbId, 10) : null,
+      lockedFields: [...lockedFields],
     };
 
     const url = isEdit ? `/api/games/${initial.id}` : "/api/games";
@@ -314,6 +333,63 @@ export function GameForm({ genres, initial = {} }: GameFormProps) {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* IGDB */}
+      <div className="space-y-3 rounded-xl border p-4">
+        <p className="text-sm font-medium">IGDB Sync</p>
+        <div className="space-y-1.5">
+          <Label htmlFor="igdbId">IGDB Game ID</Label>
+          <Input
+            id="igdbId"
+            type="number"
+            min={1}
+            value={igdbId}
+            onChange={(e) => setIgdbId(e.target.value)}
+            placeholder="e.g. 1942"
+            disabled={loading}
+            className="max-w-[160px]"
+          />
+          <p className="text-xs text-muted-foreground">
+            Link to IGDB to enable auto-sync. Find the ID at igdb.com.
+          </p>
+        </div>
+        {igdbId && (
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground">
+              Lock fields to prevent IGDB from overwriting manual edits:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {LOCKABLE_FIELDS.map(({ key, label }) => {
+                const locked = lockedFields.has(key);
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() =>
+                      setLockedFields((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(key)) next.delete(key); else next.add(key);
+                        return next;
+                      })
+                    }
+                    className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                      locked
+                        ? "bg-primary/10 border-primary/30 text-primary font-medium"
+                        : "border-border text-muted-foreground hover:border-primary/30"
+                    }`}
+                  >
+                    {locked
+                      ? <Lock className="h-3 w-3" />
+                      : <LockOpen className="h-3 w-3" />
+                    }
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-3">

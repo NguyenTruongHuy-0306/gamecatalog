@@ -56,6 +56,8 @@ const updateSchema = z.object({
   purchaseLinks: z
     .array(z.object({ store: z.string().min(1).max(50), url: z.string().url() }))
     .optional(),
+  igdbId: z.number().int().positive().nullable().optional(),
+  lockedFields: z.array(z.string()).optional(),
 });
 
 export async function PUT(
@@ -78,7 +80,7 @@ export async function PUT(
     return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
   }
 
-  const { genreIds, ...gameData } = parsed.data;
+  const { genreIds, igdbId, lockedFields, ...gameData } = parsed.data;
 
   const game = await prisma.game.findUnique({ where: { id } });
   if (!game) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -87,6 +89,8 @@ export async function PUT(
     where: { id },
     data: {
       ...gameData,
+      ...(igdbId !== undefined ? { igdbId } : {}),
+      ...(lockedFields !== undefined ? { lockedFields } : {}),
       ...(genreIds !== undefined
         ? {
             gameGenres: {

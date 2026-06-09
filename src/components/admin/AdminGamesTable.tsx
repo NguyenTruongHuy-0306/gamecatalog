@@ -22,6 +22,7 @@ interface Game {
   avgRating: number;
   reviewCount: number;
   isPublished: boolean;
+  igdbId: number | null;
 }
 
 export function AdminGamesTable({ games }: { games: Game[] }) {
@@ -141,7 +142,14 @@ export function AdminGamesTable({ games }: { games: Game[] }) {
                     />
                   </TableCell>
                   <TableCell>
-                    <div className="font-medium">{game.title}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{game.title}</span>
+                      {game.igdbId && (
+                        <Badge variant="outline" className="text-[10px] py-0 h-4 px-1.5 text-blue-500 border-blue-500/40">
+                          IGDB
+                        </Badge>
+                      )}
+                    </div>
                     <div className="text-xs text-muted-foreground">{game.slug}</div>
                   </TableCell>
                   <TableCell className="text-sm">{game.releaseYear}</TableCell>
