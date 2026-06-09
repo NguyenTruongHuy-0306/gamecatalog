@@ -19,9 +19,11 @@ import { apiError } from "@/lib/client-error";
 
 interface NewThreadFormProps {
   defaultCategory?: string;
+  gameId?: string;
+  gameSlug?: string;
 }
 
-export function NewThreadForm({ defaultCategory }: NewThreadFormProps) {
+export function NewThreadForm({ defaultCategory, gameId, gameSlug }: NewThreadFormProps) {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -36,7 +38,7 @@ export function NewThreadForm({ defaultCategory }: NewThreadFormProps) {
     const res = await fetch("/api/forum/threads", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: title.trim(), body: body.trim(), category }),
+      body: JSON.stringify({ title: title.trim(), body: body.trim(), category, ...(gameId ? { gameId } : {}) }),
     });
     const data = await res.json();
     setLoading(false);

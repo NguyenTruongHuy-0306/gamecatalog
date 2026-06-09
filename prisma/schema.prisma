@@ -83,11 +83,12 @@ model Game {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  createdBy  User?         @relation("GameCreatedBy", fields: [createdById], references: [id])
-  gameGenres GameGenre[]
-  versions   GameVersion[]
-  reviews    Review[]
-  favorites  Favorite[]
+  createdBy    User?         @relation("GameCreatedBy", fields: [createdById], references: [id])
+  gameGenres   GameGenre[]
+  versions     GameVersion[]
+  reviews      Review[]
+  favorites    Favorite[]
+  forumThreads ForumThread[]
 
   @@index([avgRating(sort: Desc)])
   @@index([releaseYear])
@@ -167,6 +168,7 @@ model ForumThread {
   body       String
   category   String
   authorId   String
+  gameId     String?
   isPinned   Boolean   @default(false)
   isLocked   Boolean   @default(false)
   lastPostAt DateTime  @default(now())
@@ -175,9 +177,11 @@ model ForumThread {
   deletedAt  DateTime?
 
   author User        @relation("ForumThreadAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  game   Game?       @relation(fields: [gameId], references: [id], onDelete: SetNull)
   posts  ForumPost[]
 
   @@index([category])
+  @@index([gameId])
   @@index([lastPostAt(sort: Desc)])
   @@index([authorId])
   @@map("forum_threads")

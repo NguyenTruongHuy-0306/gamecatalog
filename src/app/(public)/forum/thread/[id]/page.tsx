@@ -32,7 +32,10 @@ export default async function ThreadDetailPage({ params, searchParams }: PagePro
   const [thread, session] = await Promise.all([
     prisma.forumThread.findUnique({
       where: { id, deletedAt: null },
-      include: { author: { select: { id: true, username: true, avatarUrl: true } } },
+      include: {
+        author: { select: { id: true, username: true, avatarUrl: true } },
+        game: { select: { id: true, title: true, slug: true } },
+      },
     }),
     auth(),
   ]);
@@ -65,9 +68,17 @@ export default async function ThreadDetailPage({ params, searchParams }: PagePro
     <div className="mx-auto max-w-4xl px-4 py-8 space-y-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 text-sm text-muted-foreground flex-wrap">
-        <Link href="/forum" className="hover:text-foreground transition-colors">Forum</Link>
+        {thread.game ? (
+          <>
+            <Link href={`/games/${thread.game.slug}`} className="hover:text-foreground transition-colors">{thread.game.title}</Link>
+            <span>/</span>
+            <Link href={`/games/${thread.game.slug}/forum`} className="hover:text-foreground transition-colors">Forum</Link>
+          </>
+        ) : (
+          <Link href="/forum" className="hover:text-foreground transition-colors">Forum</Link>
+        )}
         <span>/</span>
-        {cat && (
+        {cat && !thread.game && (
           <>
             <Link href={`/forum/${cat.slug}`} className="hover:text-foreground transition-colors">
               {cat.emoji} {cat.label}

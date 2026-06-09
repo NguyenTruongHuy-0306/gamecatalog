@@ -10,7 +10,8 @@ import { StarDisplay } from "@/components/shared/StarDisplay";
 import { GenreBadge } from "@/components/shared/GenreBadge";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, User2, Building2, Layers, MessageSquare, History, ShoppingCart, ExternalLink } from "lucide-react";
+import { Calendar, User2, Building2, Layers, MessageSquare, History, ShoppingCart, ExternalLink, Users } from "lucide-react";
+import Link from "next/link";
 import type { Metadata } from "next";
 
 interface PageProps {
@@ -29,7 +30,12 @@ async function getGame(slug: string) {
         orderBy: { createdAt: "desc" },
         take: 10,
       },
-      _count: { select: { reviews: { where: { deletedAt: null } } } },
+      _count: {
+        select: {
+          reviews: { where: { deletedAt: null } },
+          forumThreads: { where: { deletedAt: null } },
+        },
+      },
     },
   });
 }
@@ -216,6 +222,32 @@ export default async function GameDetailPage({ params }: PageProps) {
               </div>
             </div>
           )}
+
+          {/* Community forum card */}
+          <div className="rounded-2xl border bg-card p-4 space-y-3">
+            <h3 className="font-semibold text-sm flex items-center gap-2">
+              <Users className="h-4 w-4 text-primary" /> Community Forum
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              {game._count.forumThreads === 0
+                ? "No threads yet. Be the first to start a discussion!"
+                : `${game._count.forumThreads} thread${game._count.forumThreads !== 1 ? "s" : ""} from the community`}
+            </p>
+            <div className="flex flex-col gap-2">
+              <Link
+                href={`/games/${slug}/forum`}
+                className="flex items-center justify-center gap-1.5 w-full rounded-lg border bg-muted/30 hover:bg-muted/60 px-3 py-2 text-sm font-medium transition-colors"
+              >
+                <MessageSquare className="h-3.5 w-3.5" /> View Discussions
+              </Link>
+              <Link
+                href={`/games/${slug}/forum/new`}
+                className="flex items-center justify-center gap-1.5 w-full rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 px-3 py-2 text-sm font-medium transition-colors"
+              >
+                Start a Thread
+              </Link>
+            </div>
+          </div>
 
           {/* Version history card */}
           <div className="rounded-2xl border bg-card p-4 space-y-3">

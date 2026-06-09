@@ -14,6 +14,6 @@ export default defineConfig({
   datasource: {
     // Migrations require a direct (non-pooled) connection for advisory lock support.
     // Set DIRECT_DATABASE_URL to the Neon direct URL (hostname without -pooler).
-    url: process.env.DIRECT_DATABASE_URL ?? process.env.DATABASE_URL,
+    url: process.env.DIRECT_DATABASE_URL || process.env.DATABASE_URL,
   },
 });
