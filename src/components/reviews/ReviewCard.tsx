@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { StarDisplay } from "@/components/shared/StarDisplay";
-import { Flag, Trash2 } from "lucide-react";
+import { Flag, Trash2, ThumbsUp, ThumbsDown } from "lucide-react";
 import { toast } from "sonner";
 import { apiError } from "@/lib/client-error";
 
@@ -12,6 +12,9 @@ interface Review {
   rating: number;
   body?: string | null;
   createdAt: string | Date;
+  helpfulCount: number;
+  notHelpfulCount: number;
+  userVote?: number | null;
   user: { id: string; username: string };
 }
 
@@ -25,9 +28,14 @@ export function ReviewCard({ review, gameSlug, onDelete }: ReviewCardProps) {
   const { data: session } = useSession();
   const [flagging, setFlagging] = useState(false);
   const [flagged, setFlagged] = useState(false);
+  const [userVote, setUserVote] = useState<number | null>(review.userVote ?? null);
+  const [helpful, setHelpful] = useState(review.helpfulCount);
+  const [notHelpful, setNotHelpful] = useState(review.notHelpfulCount);
+  const [voting, setVoting] = useState(false);
 
   const isOwner = session?.user.id === review.user.id;
   const isAdmin = session?.user.role === "admin";
+  const canVote = !!session?.user && !isOwner;
 
   const initials = review.user.username.slice(0, 2).toUpperCase();
 
@@ -46,6 +54,40 @@ export function ReviewCard({ review, gameSlug, onDelete }: ReviewCardProps) {
     setFlagging(false);
     if (res.ok) { toast.success("Review flagged for moderation"); setFlagged(true); }
     else { const d = await res.json(); toast.error(apiError(d, "Failed to flag review")); }
+  };
+
+  const handleVote = async (value: 1 | -1) => {
+    if (!canVote || voting) return;
+
+    // Optimistic update
+    const prevVote = userVote;
+    const prevHelpful = helpful;
+    const prevNotHelpful = notHelpful;
+
+    if (userVote === value) {
+      setUserVote(null);
+      if (value === 1) setHelpful((n) => n - 1); else setNotHelpful((n) => n - 1);
+    } else {
+      if (userVote === 1) setHelpful((n) => n - 1);
+      if (userVote === -1) setNotHelpful((n) => n - 1);
+      setUserVote(value);
+      if (value === 1) setHelpful((n) => n + 1); else setNotHelpful((n) => n + 1);
+    }
+
+    setVoting(true);
+    const res = await fetch(`/api/games/${gameSlug}/reviews/${review.id}/vote`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ value }),
+    });
+    setVoting(false);
+
+    if (!res.ok) {
+      setUserVote(prevVote);
+      setHelpful(prevHelpful);
+      setNotHelpful(prevNotHelpful);
+      toast.error("Failed to register vote");
+    }
   };
 
   return (
@@ -95,6 +137,36 @@ export function ReviewCard({ review, gameSlug, onDelete }: ReviewCardProps) {
             {review.body}
           </p>
         )}
+
+        {/* Helpfulness votes */}
+        <div className="flex items-center gap-3 mt-3">
+          <button
+            onClick={() => handleVote(1)}
+            disabled={!canVote || voting}
+            aria-label="Mark as helpful"
+            className={`flex items-center gap-1.5 text-xs rounded-md px-2 py-1 transition-all disabled:cursor-not-allowed
+              ${userVote === 1
+                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/60 disabled:opacity-50"
+              }`}
+          >
+            <ThumbsUp className="h-3.5 w-3.5" />
+            <span>{helpful}</span>
+          </button>
+          <button
+            onClick={() => handleVote(-1)}
+            disabled={!canVote || voting}
+            aria-label="Mark as not helpful"
+            className={`flex items-center gap-1.5 text-xs rounded-md px-2 py-1 transition-all disabled:cursor-not-allowed
+              ${userVote === -1
+                ? "bg-red-500/15 text-red-600 dark:text-red-400"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/60 disabled:opacity-50"
+              }`}
+          >
+            <ThumbsDown className="h-3.5 w-3.5" />
+            <span>{notHelpful}</span>
+          </button>
+        </div>
       </div>
     </div>
   );

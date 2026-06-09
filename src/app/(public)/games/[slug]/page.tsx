@@ -68,7 +68,12 @@ export default async function GameDetailPage({ params }: PageProps) {
       }))
     : false;
 
-  const initialReviews = game.reviews.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() }));
+  const initialReviews = game.reviews.map((r) => ({
+    ...r,
+    createdAt: r.createdAt.toISOString(),
+    helpfulCount: r.helpfulCount,
+    notHelpfulCount: r.notHelpfulCount,
+  }));
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 space-y-8">

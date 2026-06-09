@@ -5,6 +5,7 @@ import { requireVerifiedAuth } from "@/lib/api-helpers";
 import { verifyRecaptcha } from "@/lib/recaptcha";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { containsMaliciousLinks } from "@/lib/spam-scanner";
+import { auth } from "@/auth";
 
 const createSchema = z.object({
   rating: z.number().int().min(1).max(5),
@@ -26,11 +27,17 @@ export async function GET(
   });
   if (!game) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+  const session = await auth();
+  const userId = session?.user.id;
+
   const [reviews, total] = await Promise.all([
     prisma.review.findMany({
       where: { gameId: game.id, deletedAt: null },
-      include: {
+      select: {
+        id: true, rating: true, body: true, createdAt: true,
+        helpfulCount: true, notHelpfulCount: true,
         user: { select: { id: true, username: true } },
+        ...(userId ? { votes: { where: { userId }, select: { value: true } } } : {}),
       },
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * limit,
@@ -39,7 +46,12 @@ export async function GET(
     prisma.review.count({ where: { gameId: game.id, deletedAt: null } }),
   ]);
 
-  return NextResponse.json({ reviews, total, page, totalPages: Math.ceil(total / limit) });
+  const shaped = reviews.map(({ votes, ...r }) => ({
+    ...r,
+    userVote: votes?.[0]?.value ?? null,
+  }));
+
+  return NextResponse.json({ reviews: shaped, total, page, totalPages: Math.ceil(total / limit) });
 }
 
 export async function POST(

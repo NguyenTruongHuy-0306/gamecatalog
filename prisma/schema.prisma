@@ -35,6 +35,7 @@ model User {
   favorites          Favorite[]
   forumThreads       ForumThread[]       @relation("ForumThreadAuthor")
   forumPosts         ForumPost[]         @relation("ForumPostAuthor")
+  reviewVotes        ReviewVote[]
 
   @@map("users")
 }
@@ -126,27 +127,44 @@ model GameVersion {
 }
 
 model Review {
-  id          String    @id @default(uuid())
-  gameId      String
-  userId      String
-  rating      Int
-  body        String?
-  isFlagged   Boolean   @default(false)
-  flaggedById String?
-  flagReason  String?
-  flaggedAt   DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime?
+  id              String    @id @default(uuid())
+  gameId          String
+  userId          String
+  rating          Int
+  body            String?
+  isFlagged       Boolean   @default(false)
+  flaggedById     String?
+  flagReason      String?
+  flaggedAt       DateTime?
+  helpfulCount    Int       @default(0)
+  notHelpfulCount Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
 
-  game      Game  @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  user      User  @relation("ReviewAuthor", fields: [userId], references: [id], onDelete: Cascade)
-  flaggedBy User? @relation("ReviewFlaggedBy", fields: [flaggedById], references: [id])
+  game      Game         @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  user      User         @relation("ReviewAuthor", fields: [userId], references: [id], onDelete: Cascade)
+  flaggedBy User?        @relation("ReviewFlaggedBy", fields: [flaggedById], references: [id])
+  votes     ReviewVote[]
 
   @@unique([gameId, userId])
   @@index([gameId])
   @@index([userId])
   @@map("reviews")
+}
+
+model ReviewVote {
+  userId    String
+  reviewId  String
+  value     Int
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@id([userId, reviewId])
+  @@index([reviewId])
+  @@map("review_votes")
 }
 
 model Favorite {

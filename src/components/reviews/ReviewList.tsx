@@ -12,6 +12,9 @@ interface Review {
   rating: number;
   body?: string | null;
   createdAt: string;
+  helpfulCount: number;
+  notHelpfulCount: number;
+  userVote?: number | null;
   user: { id: string; username: string };
 }
 
