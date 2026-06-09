@@ -50,7 +50,7 @@ const createSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters").max(200),
   body: z.string().min(10, "Post body must be at least 10 characters").max(10000),
   category: z.enum(CATEGORY_SLUGS as [string, ...string[]]),
-  gameId: z.string().uuid().optional(),
+  gameId: z.string().uuid(),
 });
 
 export async function POST(request: NextRequest) {
@@ -75,10 +75,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
   }
 
-  if (parsed.data.gameId) {
-    const game = await prisma.game.findUnique({ where: { id: parsed.data.gameId, isPublished: true }, select: { id: true } });
-    if (!game) return NextResponse.json({ error: "Game not found" }, { status: 404 });
-  }
+  const game = await prisma.game.findUnique({ where: { id: parsed.data.gameId, isPublished: true }, select: { id: true } });
+  if (!game) return NextResponse.json({ error: "Game not found" }, { status: 404 });
 
   const thread = await prisma.forumThread.create({
     data: {
@@ -86,7 +84,7 @@ export async function POST(request: NextRequest) {
       body: parsed.data.body,
       category: parsed.data.category,
       authorId: session!.user.id,
-      ...(parsed.data.gameId ? { gameId: parsed.data.gameId } : {}),
+      gameId: parsed.data.gameId,
     },
     include: {
       author: { select: { id: true, username: true, avatarUrl: true } },

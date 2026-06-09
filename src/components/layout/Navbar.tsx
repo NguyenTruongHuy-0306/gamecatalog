@@ -235,6 +235,7 @@ export function Navbar() {
           >
             <MessageSquare className="h-4 w-4" /> Forum
           </Link>
+
           {session?.user ? (
             <>
               <div className="my-1 border-t" />

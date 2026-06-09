@@ -126,14 +126,10 @@ describe("POST /api/forum/threads", () => {
     expect(res.status).toBe(400);
   });
 
-  it("creates a thread without gameId and returns 201", async () => {
+  it("returns 400 when gameId is missing", async () => {
     authOk();
-    mockForumThread.create.mockResolvedValueOnce({ id: "t1", ...validThread, author: { id: "u1", username: "alice" } });
     const res = await POST(postReq(validThread));
-    expect(res.status).toBe(201);
-    expect(mockForumThread.create).toHaveBeenCalledWith(
-      expect.objectContaining({ data: expect.not.objectContaining({ gameId: expect.anything() }) })
-    );
+    expect(res.status).toBe(400);
   });
 
   it("returns 404 when gameId references a non-existent game", async () => {

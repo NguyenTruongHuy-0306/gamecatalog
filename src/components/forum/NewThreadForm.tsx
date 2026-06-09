@@ -19,8 +19,8 @@ import { apiError } from "@/lib/client-error";
 
 interface NewThreadFormProps {
   defaultCategory?: string;
-  gameId?: string;
-  gameSlug?: string;
+  gameId: string;
+  gameSlug: string;
 }
 
 export function NewThreadForm({ defaultCategory, gameId, gameSlug }: NewThreadFormProps) {
@@ -38,7 +38,7 @@ export function NewThreadForm({ defaultCategory, gameId, gameSlug }: NewThreadFo
     const res = await fetch("/api/forum/threads", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: title.trim(), body: body.trim(), category, ...(gameId ? { gameId } : {}) }),
+      body: JSON.stringify({ title: title.trim(), body: body.trim(), category, gameId }),
     });
     const data = await res.json();
     setLoading(false);

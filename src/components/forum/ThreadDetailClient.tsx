@@ -14,7 +14,7 @@ import {
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-export function ThreadDetailClient({ threadId }: { threadId: string }) {
+export function ThreadDetailClient({ threadId, redirectPath }: { threadId: string; redirectPath: string }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -26,7 +26,7 @@ export function ThreadDetailClient({ threadId }: { threadId: string }) {
     if (res.ok) {
       setOpen(false);
       toast.success("Thread deleted");
-      router.push("/forum");
+      router.push(redirectPath);
       router.refresh();
     } else {
       toast.error("Failed to delete thread");

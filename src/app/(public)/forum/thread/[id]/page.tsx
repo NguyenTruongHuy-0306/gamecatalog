@@ -68,21 +68,11 @@ export default async function ThreadDetailPage({ params, searchParams }: PagePro
     <div className="mx-auto max-w-4xl px-4 py-8 space-y-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 text-sm text-muted-foreground flex-wrap">
-        {thread.game ? (
+        {thread.game && (
           <>
             <Link href={`/games/${thread.game.slug}`} className="hover:text-foreground transition-colors">{thread.game.title}</Link>
             <span>/</span>
             <Link href={`/games/${thread.game.slug}/forum`} className="hover:text-foreground transition-colors">Forum</Link>
-          </>
-        ) : (
-          <Link href="/forum" className="hover:text-foreground transition-colors">Forum</Link>
-        )}
-        <span>/</span>
-        {cat && !thread.game && (
-          <>
-            <Link href={`/forum/${cat.slug}`} className="hover:text-foreground transition-colors">
-              {cat.emoji} {cat.label}
-            </Link>
             <span>/</span>
           </>
         )}
@@ -130,7 +120,10 @@ export default async function ThreadDetailPage({ params, searchParams }: PagePro
                 </span>
               </div>
               {(currentUserId === thread.authorId || isAdmin) && (
-                <ThreadDetailClient threadId={thread.id} />
+                <ThreadDetailClient
+                  threadId={thread.id}
+                  redirectPath={thread.game ? `/games/${thread.game.slug}/forum` : "/games"}
+                />
               )}
             </div>
             <p className="text-sm whitespace-pre-wrap leading-relaxed">{thread.body}</p>
