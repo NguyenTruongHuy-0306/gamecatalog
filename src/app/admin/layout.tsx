@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import Link from "next/link";
-import { Users, Gamepad2, Flag, LayoutDashboard, ChevronLeft, Tag } from "lucide-react";
+import { Users, Gamepad2, Flag, LayoutDashboard, ChevronLeft, Tag, MessageSquare } from "lucide-react";
 
 const navItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -9,6 +9,7 @@ const navItems = [
   { href: "/admin/games", label: "Games", icon: Gamepad2 },
   { href: "/admin/genres", label: "Genres", icon: Tag },
   { href: "/admin/reviews", label: "Review Queue", icon: Flag },
+  { href: "/admin/forum", label: "Forum", icon: MessageSquare },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
