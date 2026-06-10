@@ -43,34 +43,39 @@ export async function POST(request: NextRequest) {
 
   if (!parsed.success) return reply();
 
-  const user = await prisma.user.findUnique({
-    where: { email: parsed.data.email.toLowerCase() },
-  });
-
-  // Return the same message whether or not the user exists (prevent enumeration)
-  if (!user || user.deletedAt || !user.passwordHash) return reply();
-
-  // Invalidate any existing reset tokens
-  await prisma.verificationToken.deleteMany({
-    where: { userId: user.id, type: "password_reset" },
-  });
-
-  const rawToken = generateRawToken();
-  const hashedToken = hashToken(rawToken);
-
-  await prisma.verificationToken.create({
-    data: {
-      userId: user.id,
-      token: hashedToken,
-      type: "password_reset",
-      expiresAt: getTokenExpiryDate(1),
-    },
-  });
-
   try {
-    await sendPasswordResetEmail(user.email, rawToken);
+    const user = await prisma.user.findUnique({
+      where: { email: parsed.data.email.toLowerCase() },
+    });
+
+    // Return the same message whether or not the user exists (prevent enumeration)
+    if (!user || user.deletedAt || !user.passwordHash) return reply();
+
+    // Invalidate any existing reset tokens
+    await prisma.verificationToken.deleteMany({
+      where: { userId: user.id, type: "password_reset" },
+    });
+
+    const rawToken = generateRawToken();
+    const hashedToken = hashToken(rawToken);
+
+    await prisma.verificationToken.create({
+      data: {
+        userId: user.id,
+        token: hashedToken,
+        type: "password_reset",
+        expiresAt: getTokenExpiryDate(1),
+      },
+    });
+
+    try {
+      await sendPasswordResetEmail(user.email, rawToken);
+    } catch (err) {
+      console.error("Failed to send password reset email:", err);
+    }
   } catch (err) {
-    console.error("Failed to send password reset email:", err);
+    console.error("[forgot-password] Unhandled error:", err);
+    return reply();
   }
 
   return reply();

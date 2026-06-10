@@ -5,11 +5,11 @@ function getResend() {
 }
 
 function getFrom() {
-  return process.env.RESEND_FROM_EMAIL ?? "noreply@gamecatalog.dev";
+  return process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
 }
 
 function getAppUrl() {
-  return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 }
 
 export async function sendVerificationEmail(email: string, token: string) {
