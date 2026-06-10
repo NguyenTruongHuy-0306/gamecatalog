@@ -441,10 +441,10 @@ export default async function HomePage() {
               </div>
             </ScrollReveal>
 
-            <div className="grid md:grid-cols-3 grid-rows-auto gap-4 auto-rows-fr">
+            <div className="grid md:grid-cols-3 gap-4">
               {features.map(({ id, icon: Icon, label, title, desc, accent, bg, span }, i) => (
                 <ScrollReveal key={id} delay={i * 80} className={span}>
-                  <div className={`h-full rounded-2xl border border-border/60 bg-card p-8 flex flex-col gap-4 group hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 neon-card ${id === "filtering" ? "md:row-span-2" : ""}`}>
+                  <div className="h-full rounded-2xl border border-border/60 bg-card p-8 flex flex-col gap-4 group hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 neon-card">
                     <div className="flex items-start justify-between">
                       <div className={`flex items-center justify-center h-12 w-12 rounded-2xl ${bg} group-hover:scale-110 transition-transform duration-300`}>
                         <Icon className={`h-6 w-6 ${accent}`} />
