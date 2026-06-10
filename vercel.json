@@ -1,8 +1,1 @@
-{
-  "crons": [
-    {
-      "path": "/api/admin/sync/igdb",
-      "schedule": "0 */6 * * *"
-    }
-  ]
-}
+{}

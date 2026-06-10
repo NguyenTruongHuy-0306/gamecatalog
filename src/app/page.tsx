@@ -236,6 +236,8 @@ export default async function HomePage() {
                                 alt={game.title}
                                 width={200}
                                 height={i === 0 ? 267 : 200}
+                                priority={i === 0}
+                                sizes="200px"
                                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                               />
                             ) : (
@@ -264,6 +266,7 @@ export default async function HomePage() {
                                 alt={game.title}
                                 width={200}
                                 height={i === 0 ? 200 : 267}
+                                sizes="200px"
                                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                               />
                             ) : (
@@ -292,6 +295,7 @@ export default async function HomePage() {
                                 alt={game.title}
                                 width={200}
                                 height={267}
+                                sizes="200px"
                                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                               />
                             ) : (

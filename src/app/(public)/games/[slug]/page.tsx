@@ -11,7 +11,9 @@ import { GenreBadge } from "@/components/shared/GenreBadge";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Calendar, User2, Building2, Layers, MessageSquare, History, ShoppingCart, ExternalLink, Users } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
+import { RecaptchaProvider } from "@/components/auth/RecaptchaProvider";
 import type { Metadata } from "next";
 
 interface PageProps {
@@ -83,8 +85,7 @@ export default async function GameDetailPage({ params }: PageProps) {
         {/* Blurred backdrop */}
         {game.coverImageUrl && (
           <div className="absolute inset-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={game.coverImageUrl} alt="" aria-hidden className="w-full h-full object-cover blur-2xl opacity-20 scale-110" />
+            <Image src={game.coverImageUrl} alt="" aria-hidden fill className="object-cover blur-2xl opacity-20 scale-110" sizes="100vw" />
             <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/40" />
           </div>
         )}
@@ -93,8 +94,7 @@ export default async function GameDetailPage({ params }: PageProps) {
           {/* Cover */}
           {game.coverImageUrl && (
             <div className="shrink-0 w-36 sm:w-44 rounded-xl overflow-hidden shadow-xl shadow-black/20 self-start">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={game.coverImageUrl} alt={game.title} className="w-full aspect-[3/4] object-cover" />
+              <Image src={game.coverImageUrl} alt={game.title} width={176} height={235} priority className="w-full aspect-[3/4] object-cover" sizes="(max-width: 640px) 144px, 176px" />
             </div>
           )}
 
@@ -175,7 +175,9 @@ export default async function GameDetailPage({ params }: PageProps) {
               <MessageSquare className="h-5 w-5 text-primary" />
               Reviews &amp; Ratings
             </h2>
-            <ReviewForm gameSlug={slug} />
+            <RecaptchaProvider>
+              <ReviewForm gameSlug={slug} />
+            </RecaptchaProvider>
             <ReviewList gameSlug={slug} initialReviews={initialReviews} initialTotal={game._count.reviews} />
           </section>
         </div>
