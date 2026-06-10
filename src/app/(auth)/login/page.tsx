@@ -1,4 +1,5 @@
 import { LoginForm } from "@/components/auth/LoginForm";
+import { RecaptchaProvider } from "@/components/auth/RecaptchaProvider";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Sign In" };
@@ -8,7 +9,9 @@ export default function LoginPage() {
   return (
     <>
       <h1 className="text-2xl font-bold text-center mb-6">Welcome back</h1>
-      <LoginForm googleEnabled={googleEnabled} />
+      <RecaptchaProvider>
+        <LoginForm googleEnabled={googleEnabled} />
+      </RecaptchaProvider>
     </>
   );
 }

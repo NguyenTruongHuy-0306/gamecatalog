@@ -1,10 +1,8 @@
 import Link from "next/link";
 import { Gamepad2 } from "lucide-react";
-import { RecaptchaProvider } from "@/components/auth/RecaptchaProvider";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <RecaptchaProvider>
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 hero-gradient relative overflow-hidden">
       {/* Decorative blobs */}
       <div className="absolute top-0 left-1/3 w-96 h-96 rounded-full bg-primary/5 blur-3xl pointer-events-none" aria-hidden="true" />
@@ -28,6 +26,5 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         {children}
       </main>
     </div>
-    </RecaptchaProvider>
   );
 }

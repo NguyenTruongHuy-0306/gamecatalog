@@ -38,6 +38,11 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "res.cloudinary.com" },
     ],
   },
+  async redirects() {
+    return [
+      { source: "/forum/new", destination: "/games", permanent: true },
+    ];
+  },
   async headers() {
     return [
       {
