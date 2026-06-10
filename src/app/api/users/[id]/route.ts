@@ -10,33 +10,54 @@ export async function GET(_request: NextRequest, { params }: Params) {
   const { error } = await requireAdmin();
   if (error) return error;
 
-  const user = await prisma.user.findUnique({
-    where: { id },
-    select: {
-      id: true,
-      email: true,
-      username: true,
-      bio: true,
-      avatarUrl: true,
-      role: true,
-      isBanned: true,
-      banReason: true,
-      bannedAt: true,
-      emailVerified: true,
-      createdAt: true,
-      googleId: true,
-      _count: { select: { reviews: true } },
-      reviews: {
-        where: { deletedAt: null },
-        include: { game: { select: { id: true, title: true, slug: true } } },
-        orderBy: { createdAt: "desc" },
-        take: 20,
+  const [user, forumThreads] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        bio: true,
+        avatarUrl: true,
+        role: true,
+        isBanned: true,
+        banReason: true,
+        bannedAt: true,
+        emailVerified: true,
+        createdAt: true,
+        googleId: true,
+        _count: { select: { reviews: true } },
+        reviews: {
+          where: { deletedAt: null },
+          include: { game: { select: { id: true, title: true, slug: true } } },
+          orderBy: { createdAt: "desc" },
+          take: 20,
+        },
       },
-    },
-  });
+    }),
+    prisma.forumThread.findMany({
+      where: {
+        deletedAt: null,
+        OR: [
+          { authorId: id },
+          { posts: { some: { authorId: id, deletedAt: null } } },
+        ],
+      },
+      select: {
+        id: true,
+        title: true,
+        lastPostAt: true,
+        authorId: true,
+        game: { select: { title: true, slug: true } },
+        _count: { select: { posts: { where: { deletedAt: null } } } },
+      },
+      orderBy: { lastPostAt: "desc" },
+      take: 20,
+    }),
+  ]);
 
   if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json(user);
+  return NextResponse.json({ ...user, forumThreads });
 }
 
 const profileEditSchema = z.object({

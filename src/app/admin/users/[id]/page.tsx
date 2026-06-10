@@ -13,7 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { StarDisplay } from "@/components/shared/StarDisplay";
 import { AvatarUpload } from "@/components/shared/AvatarUpload";
 import { toast } from "sonner";
-import { ArrowLeft, Pencil, Check, X, Trash2, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Pencil, Check, X, Trash2, ShieldCheck, Users, MessageSquare, Calendar, Gamepad2 } from "lucide-react";
 
 interface UserDetail {
   id: string;
@@ -36,6 +36,14 @@ interface UserDetail {
     createdAt: string;
     game: { id: string; title: string; slug: string };
   }>;
+  forumThreads: Array<{
+    id: string;
+    title: string;
+    lastPostAt: string;
+    authorId: string;
+    game: { title: string; slug: string } | null;
+    _count: { posts: number };
+  }>;
 }
 
 export default function AdminUserDetailPage() {
@@ -49,7 +57,6 @@ export default function AdminUserDetailPage() {
   const [editUsername, setEditUsername] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editBio, setEditBio] = useState("");
-  const [editVerified, setEditVerified] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editError, setEditError] = useState("");
 
@@ -65,7 +72,6 @@ export default function AdminUserDetailPage() {
         setEditUsername(data.username);
         setEditEmail(data.email);
         setEditBio(data.bio ?? "");
-        setEditVerified(!!data.emailVerified);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -76,7 +82,6 @@ export default function AdminUserDetailPage() {
     setEditUsername(user.username);
     setEditEmail(user.email);
     setEditBio(user.bio ?? "");
-    setEditVerified(!!user.emailVerified);
     setEditError("");
     setEditing(false);
   };
@@ -87,7 +92,7 @@ export default function AdminUserDetailPage() {
     const res = await fetch(`/api/users/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: editUsername, email: editEmail, bio: editBio || undefined, emailVerified: editVerified }),
+      body: JSON.stringify({ username: editUsername, email: editEmail, bio: editBio || undefined }),
     });
     const data = await res.json();
     setSaving(false);
@@ -218,12 +223,6 @@ export default function AdminUserDetailPage() {
                   onChange={(e) => setEditBio(e.target.value)}
                   maxLength={300} rows={2} disabled={saving} placeholder="No bio" />
               </div>
-              <div className="flex items-center gap-2">
-                <input id="edit-verified" type="checkbox" checked={editVerified}
-                  onChange={(e) => setEditVerified(e.target.checked)}
-                  className="h-4 w-4 rounded border border-input" disabled={saving} />
-                <Label htmlFor="edit-verified">Email verified</Label>
-              </div>
               {editError && (
                 <Alert variant="destructive">
                   <AlertDescription>{editError}</AlertDescription>
@@ -341,6 +340,49 @@ export default function AdminUserDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Forum Activity */}
+      <div>
+        <h2 className="font-semibold mb-3 flex items-center gap-2">
+          <Users className="h-4 w-4 text-violet-500" />
+          Forum Activity
+          <span className="text-sm font-normal text-muted-foreground">({user.forumThreads.length} thread{user.forumThreads.length !== 1 ? "s" : ""})</span>
+        </h2>
+        {user.forumThreads.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No forum activity.</p>
+        ) : (
+          <div className="space-y-2">
+            {user.forumThreads.map((thread) => (
+              <div key={thread.id} className="border rounded-lg p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <Link href={`/forum/thread/${thread.id}`} className="font-medium text-sm hover:underline line-clamp-1">
+                    {thread.title}
+                  </Link>
+                  <Badge variant="secondary" className="text-xs shrink-0">
+                    {thread.authorId === user.id ? "Started" : "Replied"}
+                  </Badge>
+                </div>
+                <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-muted-foreground">
+                  {thread.game && (
+                    <span className="flex items-center gap-1">
+                      <Gamepad2 className="h-3 w-3" />
+                      {thread.game.title}
+                    </span>
+                  )}
+                  <span className="flex items-center gap-1">
+                    <MessageSquare className="h-3 w-3" />
+                    {thread._count.posts} {thread._count.posts === 1 ? "reply" : "replies"}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    {new Date(thread.lastPostAt).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
