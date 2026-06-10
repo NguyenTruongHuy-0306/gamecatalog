@@ -219,15 +219,48 @@ Complete history of features, fixes, and improvements built with Claude across a
 
 ---
 
+## 2026-06-10 — Performance, Admin Forum, Bug Fixes
+
+**Disable IGDB auto-sync cron**
+- Removed the every-6-hours cron job from `vercel.json` while Twitch credentials are failing
+- Manual sync from the admin dashboard still works
+
+**Core Web Vitals improvements — first pass (Speed Insights score: 76)**
+- Replaced raw `<img>` tags on game detail page with `next/image` (cover: `priority` + dimensions; backdrop: `fill`)
+- Added `priority` and `sizes` to above-fold mosaic images on homepage
+- Removed `GoogleReCaptchaProvider` from global `Providers` — scoped to auth layout + game detail page only
+- Removed `framer-motion` from dependencies (~42 KB, was never imported)
+
+**Core Web Vitals — targeted fixes for three flagged Speed Insights paths**
+- `/` — replaced `force-dynamic` with `revalidate=3600` (ISR); page now caches at CDN edge; removed `ScrollReveal` from the `#1 RANKED` hero card (LCP element was hidden at `opacity: 0` until JS hydrated); extracted session-dependent CTA to `HomeCta` client component so the page stays static
+- `/login` — scoped `RecaptchaProvider` to login page only; removed from auth layout so forgot-password/verify-email/reset-password no longer load the reCAPTCHA script
+- `/forum/new` — promoted server-side `redirect()` to a permanent CDN-level redirect in `next.config.ts`
+
+**Add forum management to admin panel**
+- New **Forum** entry in admin sidebar
+- `/admin/forum`: thread list with All / Pinned / Locked tabs, category dropdown, search, sort, per-row pin/unpin/lock/unlock/delete, bulk delete
+- `/admin/forum/[id]`: full thread body + replies; pin, lock, delete thread; delete individual replies
+- API routes: `GET/PATCH /api/admin/forum/threads`, `GET/PATCH /api/admin/forum/threads/[id]`, `PATCH /api/admin/forum/posts/[id]`
+
+**Fix Navbar crash: `session?.user.role` → `session?.user?.role`**
+- Runtime `TypeError: Cannot read properties of undefined (reading 'role')` when `session.user` was undefined
+
+**Fix local dev environment**
+- `AUTH_URL` set to `http://localhost:3000` (was blank — caused `UntrustedHost` error)
+- `AUTH_SECRET` generated (was blank — caused `MissingSecret` error)
+- `DATABASE_URL` sslmode changed to `verify-full` (silences pg driver deprecation warning)
+
+---
+
 ## Totals
 
 | Metric | Count |
 |--------|-------|
-| Sessions | 7+ |
-| Total commits | ~50 |
+| Sessions | 8+ |
+| Total commits | ~55 |
 | New DB migrations | 5 |
 | Test files | 34 |
 | Tests | 261+ |
-| New pages | 10+ |
-| New API routes | 8+ |
-| Major features | 20+ |
+| New pages | 12+ |
+| New API routes | 12+ |
+| Major features | 22+ |
