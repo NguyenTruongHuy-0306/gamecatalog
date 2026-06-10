@@ -111,7 +111,7 @@ export function Navbar() {
             />
           </form>
 
-          {session?.user.role === "admin" && (
+          {session?.user?.role === "admin" && (
             <Link
               href="/admin/dashboard"
               className="px-3 py-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-all duration-150 shrink-0"
