@@ -307,11 +307,24 @@ Complete history of features, fixes, and improvements built with Claude across a
 
 ---
 
+---
+
+## 2026-06-10 (Session 4) — Production Email Fix (Vercel env vars)
+
+**No code commits — infrastructure fix only.**
+
+- Diagnosed why password reset emails were not being delivered on `gamecatalog.ca` despite working locally
+- Root cause: `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, and `NEXT_PUBLIC_APP_URL` were empty strings in Vercel's environment variables (placeholder entries from 10 days ago, never filled in)
+- Used Vercel CLI to remove the empty entries and re-add with correct values; redeployed production
+- Verified production API returns HTTP 200 and Resend confirms `delivered` status for the reset email
+
+---
+
 ## Totals
 
 | Metric | Count |
 |--------|-------|
-| Sessions | 10+ |
+| Sessions | 11+ |
 | Total commits | ~63 |
 | New DB migrations | 5 |
 | Test files | 34 |
