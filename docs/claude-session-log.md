@@ -291,15 +291,31 @@ Complete history of features, fixes, and improvements built with Claude across a
 
 ---
 
+---
+
+## 2026-06-10 (Session 3) — Forgot Password: Email Delivery Fix + Resend UX
+
+**Fix forgot-password email delivery and transient 500 errors**
+- `email.ts`: `??` → `||` so empty `RESEND_FROM_EMAIL` / `NEXT_PUBLIC_APP_URL` env vars fall back to defaults instead of being passed through as empty strings
+- `forgot-password/route.ts`: wrapped all DB operations in a top-level try/catch — transient Neon connection resets no longer surface as bare 500s; generic success response returned in all cases (enumeration protection preserved)
+- Configured `RESEND_API_KEY` in local environment (was never set — emails were silently never sent)
+
+**Add resend link with 30s cooldown and 3-attempt limit**
+- After the initial send, a 30-second countdown appears on the success screen
+- Once it expires, a "Resend reset link" button appears and re-triggers the API call
+- After 3 resend attempts, the button is replaced with a warning to check spam or wait
+
+---
+
 ## Totals
 
 | Metric | Count |
 |--------|-------|
-| Sessions | 9+ |
-| Total commits | ~61 |
+| Sessions | 10+ |
+| Total commits | ~63 |
 | New DB migrations | 5 |
 | Test files | 34 |
 | Tests | 261+ |
 | New pages | 13+ |
 | New API routes | 12+ |
-| Major features | 25+ |
+| Major features | 26+ |
