@@ -48,7 +48,6 @@ const profileEditSchema = z.object({
     .optional(),
   email: z.string().email("Invalid email").optional(),
   bio: z.string().max(300, "Bio max 300 characters").optional(),
-  emailVerified: z.boolean().optional(),
 });
 
 export async function PUT(request: NextRequest, { params }: Params) {
@@ -89,9 +88,6 @@ export async function PUT(request: NextRequest, { params }: Params) {
   if (parsed.data.username !== undefined) updateData.username = parsed.data.username;
   if (parsed.data.email !== undefined) updateData.email = parsed.data.email.toLowerCase();
   if (parsed.data.bio !== undefined) updateData.bio = parsed.data.bio;
-  if (parsed.data.emailVerified !== undefined) {
-    updateData.emailVerified = parsed.data.emailVerified ? new Date() : null;
-  }
 
   const updated = await prisma.user.update({
     where: { id },

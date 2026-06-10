@@ -3,7 +3,8 @@ const SCORE_THRESHOLD = 0.5;
 
 export async function verifyRecaptcha(token: string): Promise<boolean> {
   const secret = process.env.RECAPTCHA_SECRET_KEY;
-  if (!secret || !token) return true; // skip when not configured or token unavailable
+  if (!secret) return true; // not configured in this environment, skip verification
+  if (!token) return false;
 
   try {
     const res = await fetch(RECAPTCHA_VERIFY_URL, {

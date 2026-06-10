@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
         createdAt: { lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
       },
     })
-    .catch(() => undefined);
+    .catch((err) => console.error("[cleanup] Failed to delete abandoned pending users:", err));
 
   let pendingUser = await prisma.user.findFirst({
     where: { email, emailVerified: null, passwordHash: null },

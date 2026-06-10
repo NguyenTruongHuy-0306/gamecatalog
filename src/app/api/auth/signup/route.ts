@@ -22,7 +22,10 @@ const signupSchema = z.object({
   recaptchaToken: z.string().min(1, "Bot verification token missing"),
 });
 
+const MIN_RESPONSE_MS = 400;
+
 export async function POST(request: NextRequest) {
+  const start = Date.now();
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`ip:${ip}`, "signup", 10, 3600);
   if (!rateLimit.allowed) {
@@ -78,6 +81,8 @@ export async function POST(request: NextRequest) {
     },
   });
   if (!tokenRow) {
+    const elapsed = Date.now() - start;
+    if (elapsed < MIN_RESPONSE_MS) await new Promise((r) => setTimeout(r, MIN_RESPONSE_MS - elapsed));
     return NextResponse.json(
       { error: "Invalid or expired verification code." },
       { status: 400 }
