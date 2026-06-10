@@ -258,15 +258,48 @@ Complete history of features, fixes, and improvements built with Claude across a
 
 ---
 
+---
+
+## 2026-06-10 (Session 2) — Security Hardening, Forum Activity, Public Profiles, Smooth Transitions
+
+**Security audit and fixes (High + Medium severity)**
+- reCAPTCHA: missing token now returns `false` instead of bypassing verification (missing secret still skips in dev)
+- Email verification endpoint: rate-limited (10/hr per IP) — previously brute-forceable
+- Signup OTP: added `MIN_RESPONSE_MS` timing pad on failed attempts to prevent timing oracle
+- Cleanup promise in send-signup-otp: errors now logged instead of silently swallowed
+- Admin users PUT: removed `emailVerified` toggle — prevents bypassing the email verification flow
+
+**Security audit fixes (Low severity)**
+- Forgot-password page: checks `response.ok` and surfaces errors to the user
+- Admin users PUT: email conflict check uses `mode: "insensitive"` (consistent with username)
+- User profile PUT: skips uniqueness query when username is unchanged
+
+**Forum activity on user profile**
+- New Forum Activity section on private profile page (`/profile`)
+- Single query fetches threads the user started or replied to; shows Started/Replied badge, game, reply count, last activity
+- Same section added to admin user detail view (`/admin/users/[id]`); `GET /api/users/[id]` extended to include forum threads
+
+**Public user profile page**
+- New page at `/profile/[username]` — resolves all existing author links from forum components
+- Shows avatar, bio, role, join date, stats (reviews/threads/avg rating), Forum Activity, and Reviews
+- Case-insensitive username lookup; 404 for deleted/unknown users; dynamic `<title>`
+
+**Smooth transitions**
+- `PageTransition` client component wraps children in all three layouts (public, user, admin); uses `key={pathname}` to retrigger `animate-in fade-in slide-in-from-bottom-2` on every route change
+- Profile pages: staggered section entrance animations (100ms apart)
+- Theme toggle: adds `.theme-transitioning` class during user-triggered switches for 300ms color/bg/border cross-fade; initial-load flash suppression preserved via `isFirstApply` ref
+
+---
+
 ## Totals
 
 | Metric | Count |
 |--------|-------|
-| Sessions | 8+ |
-| Total commits | ~55 |
+| Sessions | 9+ |
+| Total commits | ~61 |
 | New DB migrations | 5 |
 | Test files | 34 |
 | Tests | 261+ |
-| New pages | 12+ |
+| New pages | 13+ |
 | New API routes | 12+ |
-| Major features | 22+ |
+| Major features | 25+ |
