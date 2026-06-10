@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import Link from "next/link";
 import { Users, Gamepad2, Flag, LayoutDashboard, ChevronLeft, Tag, MessageSquare } from "lucide-react";
+import { PageTransition } from "@/components/shared/PageTransition";
 
 const navItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -43,7 +44,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
       </aside>
       <main id="main-content" className="flex-1 overflow-auto">
-        <div className="max-w-6xl mx-auto px-6 py-8">{children}</div>
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          <PageTransition>{children}</PageTransition>
+        </div>
       </main>
     </div>
   );

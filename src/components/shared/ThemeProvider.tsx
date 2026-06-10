@@ -4,6 +4,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   useCallback,
   useSyncExternalStore,
@@ -36,17 +37,25 @@ const mediaSubscribe = (cb: () => void) => {
 const mediaSnapshot = () => (window.matchMedia(MEDIA).matches ? "dark" : "light") as ResolvedTheme;
 const mediaServerSnapshot = () => "light" as ResolvedTheme;
 
-function applyTheme(resolved: ResolvedTheme) {
+function applyTheme(resolved: ResolvedTheme, animate = false) {
   const root = document.documentElement;
-  // Suppress transitions briefly to avoid a flash when switching themes
-  const style = document.createElement("style");
-  style.textContent = "*,*::before,*::after{transition:none!important}";
-  document.head.appendChild(style);
-  root.classList.remove("light", "dark");
-  root.classList.add(resolved);
-  root.style.colorScheme = resolved;
-  window.getComputedStyle(root); // force layout flush
-  setTimeout(() => document.head.removeChild(style), 1);
+  if (animate) {
+    root.classList.add("theme-transitioning");
+    root.classList.remove("light", "dark");
+    root.classList.add(resolved);
+    root.style.colorScheme = resolved;
+    setTimeout(() => root.classList.remove("theme-transitioning"), 350);
+  } else {
+    // Suppress transitions on initial load to prevent a flash
+    const style = document.createElement("style");
+    style.textContent = "*,*::before,*::after{transition:none!important}";
+    document.head.appendChild(style);
+    root.classList.remove("light", "dark");
+    root.classList.add(resolved);
+    root.style.colorScheme = resolved;
+    window.getComputedStyle(root); // force layout flush
+    setTimeout(() => document.head.removeChild(style), 1);
+  }
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -69,9 +78,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const resolvedTheme: ResolvedTheme =
     theme === "system" ? systemTheme : (theme as ResolvedTheme);
 
+  const isFirstApply = useRef(true);
+
   // Apply theme class to <html>; pure DOM side-effect, no setState needed
   useEffect(() => {
-    applyTheme(resolvedTheme);
+    const animate = !isFirstApply.current;
+    isFirstApply.current = false;
+    applyTheme(resolvedTheme, animate);
   }, [resolvedTheme]);
 
   const setTheme = useCallback((t: Theme) => {

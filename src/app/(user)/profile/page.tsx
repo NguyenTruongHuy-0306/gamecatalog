@@ -64,7 +64,7 @@ export default async function ProfilePage() {
   return (
     <div className="space-y-0">
       {/* Hero banner */}
-      <div className="relative hero-gradient rounded-2xl overflow-hidden mb-8">
+      <div className="relative hero-gradient rounded-2xl overflow-hidden mb-8 animate-in fade-in slide-in-from-bottom-3 duration-500">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/5 pointer-events-none" />
         <div className="relative px-6 py-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5">
@@ -143,7 +143,7 @@ export default async function ProfilePage() {
       </div>
 
       {/* Favorite Games */}
-      <section className="space-y-4">
+      <section className="space-y-4 animate-in fade-in slide-in-from-bottom-3 duration-500 delay-100">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-red-500/10">
@@ -204,7 +204,7 @@ export default async function ProfilePage() {
       </section>
 
       {/* Reviews */}
-      <section className="space-y-4 pt-6">
+      <section className="space-y-4 pt-6 animate-in fade-in slide-in-from-bottom-3 duration-500 delay-150">
         <div className="flex items-center gap-2">
           <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-yellow-500/10">
             <Star className="h-4 w-4 text-yellow-500" />
@@ -260,7 +260,7 @@ export default async function ProfilePage() {
       </section>
 
       {/* Forum Activity */}
-      <section className="space-y-4 pt-6">
+      <section className="space-y-4 pt-6 animate-in fade-in slide-in-from-bottom-3 duration-500 delay-200">
         <div className="flex items-center gap-2">
           <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-violet-500/10">
             <Users className="h-4 w-4 text-violet-500" />
