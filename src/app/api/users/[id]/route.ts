@@ -79,7 +79,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
 
   if (parsed.data.email) {
     const conflict = await prisma.user.findFirst({
-      where: { email: parsed.data.email.toLowerCase(), NOT: { id } },
+      where: { email: { equals: parsed.data.email, mode: "insensitive" }, NOT: { id } },
     });
     if (conflict) return NextResponse.json({ error: "Email already in use" }, { status: 409 });
   }

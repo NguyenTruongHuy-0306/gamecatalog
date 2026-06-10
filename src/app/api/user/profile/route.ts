@@ -44,7 +44,7 @@ export async function PUT(request: NextRequest) {
 
   const { username, bio } = parsed.data;
 
-  if (username) {
+  if (username && username.toLowerCase() !== session!.user.username?.toLowerCase()) {
     const conflict = await prisma.user.findFirst({
       where: { username: { equals: username, mode: "insensitive" }, NOT: { id: session!.user.id } },
     });
