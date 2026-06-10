@@ -242,6 +242,12 @@ Complete history of features, fixes, and improvements built with Claude across a
 - `/admin/forum/[id]`: full thread body + replies; pin, lock, delete thread; delete individual replies
 - API routes: `GET/PATCH /api/admin/forum/threads`, `GET/PATCH /api/admin/forum/threads/[id]`, `PATCH /api/admin/forum/posts/[id]`
 
+**Fix bento grid layout in "Why GameCatalog" section**
+- `grid-rows-auto` is not a valid Tailwind class — removed
+- `auto-rows-fr` collapses rows to zero without explicit grid height — removed
+- `md:row-span-2` on the inner card div was a no-op (only works on direct grid children; already correctly on the `ScrollReveal` wrapper) — removed
+- Grid simplified to `md:grid-cols-3` with natural row sizing
+
 **Fix Navbar crash: `session?.user.role` → `session?.user?.role`**
 - Runtime `TypeError: Cannot read properties of undefined (reading 'role')` when `session.user` was undefined
 
