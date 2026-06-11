@@ -58,6 +58,8 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       },
     });
     if (parsed.data.rating !== undefined) await recalculateRating(review.gameId);
+    const game = await prisma.game.findUnique({ where: { id: review.gameId }, select: { slug: true } });
+    if (game) revalidatePath(`/games/${game.slug}`);
     return NextResponse.json(updated);
   }
 
@@ -79,6 +81,8 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     where: { id },
     data: { isFlagged: false, flaggedById: null, flagReason: null, flaggedAt: null },
   });
+  const game = await prisma.game.findUnique({ where: { id: review.gameId }, select: { slug: true } });
+  if (game) revalidatePath(`/games/${game.slug}`);
   return NextResponse.json({ message: "Review unflagged" });
 }
 

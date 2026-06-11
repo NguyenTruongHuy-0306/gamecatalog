@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { fetchUpdatedGames, type IgdbGame } from "@/lib/igdb";
+import { computeReleaseStatus } from "@/lib/release-status-config";
 
 export interface SyncResult {
   added: number;
@@ -95,7 +96,10 @@ export async function runIgdbSync(): Promise<SyncResult> {
           data.description = mapped.description;
         if (!locked.has("coverImageUrl") && mapped.coverImageUrl)
           data.coverImageUrl = mapped.coverImageUrl;
-        if (!locked.has("releaseYear")) data.releaseYear = mapped.releaseYear;
+        if (!locked.has("releaseYear")) {
+          data.releaseYear = mapped.releaseYear;
+          data.releaseStatus = computeReleaseStatus(mapped.releaseYear);
+        }
         if (!locked.has("developer")) data.developer = mapped.developer;
         if (!locked.has("publisher")) data.publisher = mapped.publisher;
 
@@ -125,6 +129,7 @@ export async function runIgdbSync(): Promise<SyncResult> {
             description: mapped.description || "No description available.",
             coverImageUrl: mapped.coverImageUrl,
             releaseYear: mapped.releaseYear,
+            releaseStatus: computeReleaseStatus(mapped.releaseYear),
             developer: mapped.developer,
             publisher: mapped.publisher,
             isPublished: false,

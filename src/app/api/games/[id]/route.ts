@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/api-helpers";
 import { auth } from "@/auth";
+import { computeReleaseStatus } from "@/lib/release-status-config";
 
 export async function GET(
   _request: NextRequest,
@@ -89,6 +91,9 @@ export async function PUT(
     where: { id },
     data: {
       ...gameData,
+      ...(gameData.releaseYear !== undefined
+        ? { releaseStatus: computeReleaseStatus(gameData.releaseYear) }
+        : {}),
       ...(igdbId !== undefined ? { igdbId } : {}),
       ...(lockedFields !== undefined ? { lockedFields } : {}),
       ...(genreIds !== undefined
@@ -106,6 +111,7 @@ export async function PUT(
     },
   });
 
+  revalidatePath(`/games/${updated.slug}`);
   return NextResponse.json(updated);
 }
 
