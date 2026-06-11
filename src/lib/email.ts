@@ -24,7 +24,8 @@ export async function sendVerificationEmail(email: string, token: string) {
       <a href="${url}" style="background:#6d28d9;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;display:inline-block;margin-top:8px;">
         Verify Email
       </a>
-      <p style="margin-top:16px;color:#666;font-size:12px;">If you didn't create an account, you can safely ignore this email.</p>
+      <p style="margin-top:16px;color:#666;font-size:12px;">Or copy and paste this link into your browser:<br><a href="${url}" style="color:#6d28d9;word-break:break-all;">${url}</a></p>
+      <p style="margin-top:8px;color:#666;font-size:12px;">If you didn't create an account, you can safely ignore this email.</p>
     `,
   });
 }
@@ -57,7 +58,8 @@ export async function sendPasswordResetEmail(email: string, token: string) {
       <a href="${url}" style="background:#6d28d9;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;display:inline-block;margin-top:8px;">
         Reset Password
       </a>
-      <p style="margin-top:16px;color:#666;font-size:12px;">If you didn't request a password reset, you can safely ignore this email.</p>
+      <p style="margin-top:16px;color:#666;font-size:12px;">Or copy and paste this link into your browser:<br><a href="${url}" style="color:#6d28d9;word-break:break-all;">${url}</a></p>
+      <p style="margin-top:8px;color:#666;font-size:12px;">If you didn't request a password reset, you can safely ignore this email.</p>
     `,
   });
 }

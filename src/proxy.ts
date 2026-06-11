@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 const { auth } = NextAuth(authConfig);
 
-const AUTH_ONLY_ROUTES = ["/login", "/signup", "/forgot-password", "/reset-password", "/verify-email"];
+const AUTH_ONLY_ROUTES = ["/login", "/signup", "/forgot-password", "/verify-email"];
 
 export default auth((req) => {
   const { nextUrl, auth: session } = req;
