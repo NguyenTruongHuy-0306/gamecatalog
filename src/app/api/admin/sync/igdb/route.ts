@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { runIgdbSync } from "@/lib/igdb-sync";
 import { prisma } from "@/lib/db";
+import { updateAllReleaseStatuses } from "@/lib/release-status";
 
 export const maxDuration = 300;
 
@@ -30,7 +31,8 @@ export async function POST(request: NextRequest) {
 
   try {
     const result = await runIgdbSync();
-    return NextResponse.json({ ok: true, ...result });
+    const statusUpdates = await updateAllReleaseStatuses();
+    return NextResponse.json({ ok: true, ...result, statusUpdates });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Sync failed";
     console.error("IGDB sync error:", err);

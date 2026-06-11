@@ -29,7 +29,7 @@ export default async function AdminGamesPage({ searchParams }: PageProps) {
 
   const games = await prisma.game.findMany({
     select: {
-      id: true, title: true, slug: true, releaseYear: true,
+      id: true, title: true, slug: true, releaseYear: true, releaseStatus: true,
       qualityTier: true, avgRating: true, reviewCount: true, isPublished: true,
       igdbId: true,
     },

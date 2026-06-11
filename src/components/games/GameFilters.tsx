@@ -66,13 +66,15 @@ export function GameFilters({ genres }: GameFiltersProps) {
     searchParams.has("year") ||
     searchParams.has("quality") ||
     searchParams.has("minRating") ||
+    searchParams.has("status") ||
     searchParams.has("q");
 
   const hasSecondaryFilters =
     searchParams.has("genre") ||
     searchParams.has("year") ||
     searchParams.has("quality") ||
-    searchParams.has("minRating");
+    searchParams.has("minRating") ||
+    searchParams.has("status");
 
   const clearFilters = () => {
     setSearchValue("");
@@ -191,6 +193,25 @@ export function GameFilters({ genres }: GameFiltersProps) {
               <SelectItem value="AAA">AAA</SelectItem>
               <SelectItem value="indie">Indie</SelectItem>
               <SelectItem value="free-to-play">Free to Play</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Status */}
+        <div className="flex flex-col gap-1">
+          <label htmlFor="games-status" className="text-xs font-medium text-muted-foreground">Era</label>
+          <Select
+            value={searchParams.get("status") ?? "all"}
+            onValueChange={(v) => updateParam("status", v)}
+          >
+            <SelectTrigger id="games-status" className="w-full sm:w-32">
+              <SelectValue placeholder="Era" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Eras</SelectItem>
+              <SelectItem value="upcoming">Upcoming</SelectItem>
+              <SelectItem value="released">Released</SelectItem>
+              <SelectItem value="classic">Classic</SelectItem>
             </SelectContent>
           </Select>
         </div>

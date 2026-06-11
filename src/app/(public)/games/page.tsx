@@ -19,7 +19,7 @@ interface PageProps {
 const PAGE_SIZE = 15;
 
 async function getGames(params: Record<string, string>) {
-  const { q, genre, year, quality, minRating, sort = "rating", page = "1" } = params;
+  const { q, genre, year, quality, minRating, status, sort = "rating", page = "1" } = params;
   const pageNum = Math.max(1, parseInt(page, 10));
 
   const where: Prisma.GameWhereInput = { isPublished: true };
@@ -34,6 +34,9 @@ async function getGames(params: Record<string, string>) {
   if (year) where.releaseYear = parseInt(year, 10);
   if (quality) where.qualityTier = quality;
   if (minRating) where.avgRating = { gte: parseFloat(minRating) };
+  if (status === "upcoming" || status === "released" || status === "classic") {
+    where.releaseStatus = status;
+  }
 
   const orderBy: Prisma.GameOrderByWithRelationInput =
     sort === "year" ? { releaseYear: "desc" } : sort === "title" ? { title: "asc" } : { avgRating: "desc" };

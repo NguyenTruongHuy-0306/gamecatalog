@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/api-helpers";
 import { auth } from "@/auth";
 import { Prisma } from "@/generated/prisma/client";
+import { computeReleaseStatus } from "@/lib/release-status-config";
 
 const listSchema = z.object({
   q: z.string().optional(),
@@ -11,6 +12,7 @@ const listSchema = z.object({
   year: z.coerce.number().int().optional(),
   quality: z.string().optional(),
   minRating: z.coerce.number().min(0).max(5).optional(),
+  status: z.enum(["upcoming", "released", "classic"]).optional(),
   sort: z.enum(["rating", "year", "title"]).optional().default("rating"),
   page: z.coerce.number().int().min(1).optional().default(1),
   limit: z.coerce.number().int().min(1).max(50).optional().default(12),
@@ -26,7 +28,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Invalid query parameters" }, { status: 400 });
   }
 
-  const { q, genre, year, quality, minRating, sort, page, limit } = parsed.data;
+  const { q, genre, year, quality, minRating, status, sort, page, limit } = parsed.data;
   const skip = (page - 1) * limit;
 
   const where: Prisma.GameWhereInput = {};
@@ -50,6 +52,10 @@ export async function GET(request: NextRequest) {
 
   if (quality) {
     where.qualityTier = quality;
+  }
+
+  if (status) {
+    where.releaseStatus = status;
   }
 
   if (minRating) {
@@ -141,6 +147,7 @@ export async function POST(request: NextRequest) {
     const game = await prisma.game.create({
       data: {
         ...gameData,
+        releaseStatus: computeReleaseStatus(gameData.releaseYear),
         createdById: session!.user.id,
         gameGenres: {
           create: genreIds.map((id) => ({ genreId: id })),

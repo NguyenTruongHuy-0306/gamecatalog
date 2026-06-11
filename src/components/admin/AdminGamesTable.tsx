@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { STATUS_LABELS, STATUS_COLORS } from "@/lib/release-status-config";
+import type { ReleaseStatus } from "@/generated/prisma/client";
 import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -18,6 +20,7 @@ interface Game {
   title: string;
   slug: string;
   releaseYear: number;
+  releaseStatus: ReleaseStatus;
   qualityTier: string | null;
   avgRating: number;
   reviewCount: number;
@@ -107,6 +110,7 @@ export function AdminGamesTable({ games }: { games: Game[] }) {
               <TableHead>
                 <SortableHead label="Year" sortKey="releaseYear" currentSort={currentSort} currentDir={currentDir} onSort={handleSort} />
               </TableHead>
+              <TableHead>Era</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>
                 <SortableHead label="Rating" sortKey="avgRating" currentSort={currentSort} currentDir={currentDir} onSort={handleSort} />
@@ -123,7 +127,7 @@ export function AdminGamesTable({ games }: { games: Game[] }) {
           <TableBody>
             {games.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-muted-foreground py-8">No games yet</TableCell>
+                <TableCell colSpan={9} className="text-center text-muted-foreground py-8">No games yet</TableCell>
               </TableRow>
             ) : (
               games.map((game) => (
@@ -153,6 +157,11 @@ export function AdminGamesTable({ games }: { games: Game[] }) {
                     <div className="text-xs text-muted-foreground">{game.slug}</div>
                   </TableCell>
                   <TableCell className="text-sm">{game.releaseYear}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={`text-xs border ${STATUS_COLORS[game.releaseStatus]}`}>
+                      {STATUS_LABELS[game.releaseStatus]}
+                    </Badge>
+                  </TableCell>
                   <TableCell>
                     {game.qualityTier && <Badge variant="secondary">{game.qualityTier}</Badge>}
                   </TableCell>

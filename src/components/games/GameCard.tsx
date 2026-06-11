@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { StarDisplay } from "@/components/shared/StarDisplay";
+import { STATUS_LABELS, STATUS_COLORS } from "@/lib/release-status-config";
+import type { ReleaseStatus } from "@/generated/prisma/client";
 
 interface Genre {
   id: string;
@@ -16,6 +18,7 @@ interface GameCardProps {
   avgRating: number;
   reviewCount: number;
   releaseYear: number;
+  releaseStatus: ReleaseStatus;
   qualityTier?: string | null;
   gameGenres?: { genre: Genre }[];
   rank?: number;
@@ -40,6 +43,7 @@ export function GameCard({
   avgRating,
   reviewCount,
   releaseYear,
+  releaseStatus,
   qualityTier,
   gameGenres = [],
   rank,
@@ -101,7 +105,12 @@ export function GameCard({
           </h3>
           <div className="flex items-center justify-between">
             <StarDisplay rating={avgRating} size="sm" />
-            <span className="text-xs text-muted-foreground tabular-nums font-medium">{releaseYear}</span>
+            <div className="flex items-center gap-1.5">
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${STATUS_COLORS[releaseStatus]}`}>
+                {STATUS_LABELS[releaseStatus]}
+              </span>
+              <span className="text-xs text-muted-foreground tabular-nums font-medium">{releaseYear}</span>
+            </div>
           </div>
           {gameGenres.length > 0 && (
             <div className="flex flex-wrap gap-1">

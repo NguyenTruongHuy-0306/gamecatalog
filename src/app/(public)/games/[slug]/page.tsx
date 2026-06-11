@@ -9,6 +9,7 @@ import { ReviewForm } from "@/components/reviews/ReviewForm";
 import { StarDisplay } from "@/components/shared/StarDisplay";
 import { GenreBadge } from "@/components/shared/GenreBadge";
 import { Badge } from "@/components/ui/badge";
+import { STATUS_LABELS, STATUS_COLORS } from "@/lib/release-status-config";
 import { Separator } from "@/components/ui/separator";
 import { Calendar, User2, Building2, Layers, MessageSquare, History, ShoppingCart, ExternalLink, Users } from "lucide-react";
 import Image from "next/image";
@@ -107,6 +108,9 @@ export default async function GameDetailPage({ params }: PageProps) {
                   {QUALITY_LABELS[game.qualityTier] ?? game.qualityTier}
                 </Badge>
               )}
+              <Badge className={`border text-xs font-semibold ${STATUS_COLORS[game.releaseStatus]}`} variant="outline">
+                {STATUS_LABELS[game.releaseStatus]}
+              </Badge>
             </div>
 
             {/* Meta */}

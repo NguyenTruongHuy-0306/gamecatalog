@@ -7,6 +7,12 @@ datasource db {
   provider = "postgresql"
 }
 
+enum ReleaseStatus {
+  upcoming
+  released
+  classic
+}
+
 model User {
   id            String    @id @default(uuid())
   email         String    @unique
@@ -79,8 +85,9 @@ model Game {
   purchaseLinks  Json      @default("[]")
   avgRating      Float     @default(0)
   reviewCount    Int       @default(0)
-  isPublished    Boolean   @default(false)
-  igdbId         Int?      @unique @map("igdb_id")
+  isPublished    Boolean       @default(false)
+  releaseStatus  ReleaseStatus @default(released) @map("release_status")
+  igdbId         Int?          @unique @map("igdb_id")
   lockedFields   String[]  @default([]) @map("locked_fields")
   createdById    String?
   createdAt      DateTime  @default(now())
