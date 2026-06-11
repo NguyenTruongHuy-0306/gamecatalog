@@ -332,15 +332,48 @@ Complete history of features, fixes, and improvements built with Claude across a
 
 ---
 
+---
+
+## 2026-06-11 — Reset Password Flow Fixes, Email Investigation, IGDB Re-enabled
+
+**Fix reset-password blocked for logged-in users**
+- `/reset-password` was in `AUTH_ONLY_ROUTES` in `proxy.ts` — middleware redirected logged-in users to `/` when they clicked a reset link from email
+- Removed `/reset-password` from the list; password reset must be accessible regardless of session state
+
+**Email plain-text URL fallback**
+- Replaced `<a href>` fallback with a raw URL in a plain `<p>` tag (grey box)
+- Gmail strips all `<a>` tags from emails sent by unverified senders (`onboarding@resend.dev`); plain text is never stripped
+- Added `text` body to all auth emails for non-HTML email clients
+
+**Gmail SMTP investigation (attempted and reverted)**
+- Attempted to switch from Resend to Nodemailer + Gmail SMTP to bypass link-stripping
+- Vercel blocks all outbound SMTP connections — confirmed via function logs (`Failed to send password reset email`)
+- Reverted to Resend; SMTP is not viable on any serverless platform
+
+**Resend custom domain prepared**
+- `gamecatalog.ca` registered in Resend via API; DNS records (DKIM, SPF, MX) retrieved
+- Five DNS records ready for Namecheap (Vercel A/CNAME + Resend DKIM/SPF/MX)
+- Once added: `gamecatalog.ca` loads the site and Gmail trusts the sender → button works
+
+**`NEXT_PUBLIC_APP_URL` temporarily set to `gamecatalog-five.vercel.app`**
+- Reset email links now point to the working Vercel URL instead of the unconfigured `gamecatalog.ca`
+
+**IGDB auto-sync re-enabled**
+- Added `IGDB_CLIENT_ID`, `IGDB_CLIENT_SECRET`, `CRON_SECRET` to Vercel (via `printf` to avoid Windows CRLF whitespace in header values)
+- Cron changed from every-6h to daily (`0 0 * * *`) — Vercel Hobby plan limit
+- Sync verified: HTTP 200 `{"ok":true}` ✅
+
+---
+
 ## Totals
 
 | Metric | Count |
 |--------|-------|
-| Sessions | 12+ |
-| Total commits | ~63 |
+| Sessions | 13+ |
+| Total commits | ~68 |
 | New DB migrations | 5 |
 | Test files | 34 |
 | Tests | 261+ |
 | New pages | 13+ |
 | New API routes | 12+ |
-| Major features | 26+ |
+| Major features | 27+ |
