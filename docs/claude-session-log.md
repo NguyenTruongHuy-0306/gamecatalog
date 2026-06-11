@@ -365,15 +365,36 @@ Complete history of features, fixes, and improvements built with Claude across a
 
 ---
 
+---
+
+## 2026-06-11 (Session 6) — Automatic Game Release Status System
+
+**Add automatic game release status (upcoming / released / classic)**
+
+- `ReleaseStatus` enum added to Prisma schema; `release_status` column populated from `releaseYear`
+  - `upcoming`: `releaseYear > currentYear`
+  - `released`: within the last 9 years
+  - `classic`: 10+ years old
+- Migration `20260611000000_add_release_status` applied manually (stale advisory lock from previous failed deploys blocked `migrate deploy`)
+- `src/lib/release-status-config.ts` — client-safe constants + `computeReleaseStatus()` pure function (no Prisma import, safe for client components)
+- `src/lib/release-status.ts` — server-only wrapper; `updateAllReleaseStatuses()` batch-updates stale rows
+- IGDB sync now calls `updateAllReleaseStatuses()` after each run
+- New game creation sets `releaseStatus` via `computeReleaseStatus(releaseYear)`
+- Status badge rendered on: game cards, game detail hero, browse page, admin games table
+- "Era" dropdown filter on browse page (`?status=upcoming|released|classic`)
+- Infra: re-added `DIRECT_DATABASE_URL` to Vercel (previous set was empty); released stale `pg_advisory_lock` via `prisma db execute`; deploy succeeded ✅
+
+---
+
 ## Totals
 
 | Metric | Count |
 |--------|-------|
-| Sessions | 13+ |
-| Total commits | ~68 |
-| New DB migrations | 5 |
+| Sessions | 14+ |
+| Total commits | ~69 |
+| New DB migrations | 6 |
 | Test files | 34 |
 | Tests | 261+ |
 | New pages | 13+ |
 | New API routes | 12+ |
-| Major features | 27+ |
+| Major features | 28+ |
