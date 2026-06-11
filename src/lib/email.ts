@@ -1,18 +1,11 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
-function getTransporter() {
-  return nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    auth: {
-      user: process.env.GMAIL_USER,
-      pass: process.env.GMAIL_APP_PASSWORD,
-    },
-  });
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY);
 }
 
 function getFrom() {
-  return `GameCatalog <${process.env.GMAIL_USER}>`;
+  return process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
 }
 
 function getAppUrl() {
@@ -21,7 +14,7 @@ function getAppUrl() {
 
 export async function sendVerificationEmail(email: string, token: string) {
   const url = `${getAppUrl()}/verify-email?token=${token}`;
-  await getTransporter().sendMail({
+  await getResend().emails.send({
     from: getFrom(),
     to: email,
     subject: "Verify your GameCatalog account",
@@ -40,7 +33,7 @@ export async function sendVerificationEmail(email: string, token: string) {
 }
 
 export async function sendSignupOtpEmail(email: string, otp: string) {
-  await getTransporter().sendMail({
+  await getResend().emails.send({
     from: getFrom(),
     to: email,
     subject: "Your GameCatalog verification code",
@@ -58,7 +51,7 @@ export async function sendSignupOtpEmail(email: string, otp: string) {
 
 export async function sendPasswordResetEmail(email: string, token: string) {
   const url = `${getAppUrl()}/reset-password?token=${token}`;
-  await getTransporter().sendMail({
+  await getResend().emails.send({
     from: getFrom(),
     to: email,
     subject: "Reset your GameCatalog password",
