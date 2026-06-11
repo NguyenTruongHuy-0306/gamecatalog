@@ -65,11 +65,16 @@ export async function fetchUpdatedGames(since: number): Promise<IgdbGame[]> {
   const limit = 500;
 
   while (true) {
+    const whereClause =
+      since > 0
+        ? `updated_at > ${since} & category = (0,8,9) & version_parent = null`
+        : `category = (0,8,9) & version_parent = null`;
+
     const query =
       `fields id,name,slug,summary,first_release_date,cover.image_id,` +
       `genres.name,involved_companies.developer,involved_companies.publisher,` +
       `involved_companies.company.name,category,updated_at;` +
-      `where updated_at > ${since} & category = (0,8,9) & version_parent = null;` +
+      `where ${whereClause};` +
       `sort updated_at asc;` +
       `limit ${limit};` +
       `offset ${offset};`;

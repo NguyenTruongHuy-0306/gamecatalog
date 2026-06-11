@@ -29,6 +29,15 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  const full = new URL(request.url).searchParams.get("full") === "true";
+  if (full) {
+    await prisma.igdbSyncState.upsert({
+      where: { id: 1 },
+      create: { id: 1, lastSyncedAt: 0 },
+      update: { lastSyncedAt: 0 },
+    });
+  }
+
   try {
     const result = await runIgdbSync();
     const statusUpdates = await updateAllReleaseStatuses();

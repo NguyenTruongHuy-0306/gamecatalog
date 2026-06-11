@@ -23,11 +23,12 @@ export function IgdbSyncPanel({ lastSyncedAt: initial, pending: initialPending }
   const [pending, setPending] = useState(initialPending);
   const [lastResult, setLastResult] = useState<{ added: number; updated: number; errors: number } | null>(null);
 
-  async function handleSync() {
+  async function handleSync(full = false) {
     setSyncing(true);
     setLastResult(null);
     try {
-      const res = await fetch("/api/admin/sync/igdb", { method: "POST" });
+      const url = full ? "/api/admin/sync/igdb?full=true" : "/api/admin/sync/igdb";
+      const res = await fetch(url, { method: "POST" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Sync failed");
       setLastResult({ added: data.added, updated: data.updated, errors: data.errors });
@@ -50,10 +51,15 @@ export function IgdbSyncPanel({ lastSyncedAt: initial, pending: initialPending }
             Last run: {formatSyncTime(lastSyncedAt)}
           </p>
         </div>
-        <Button size="sm" onClick={handleSync} disabled={syncing} className="shrink-0">
-          <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${syncing ? "animate-spin" : ""}`} />
-          {syncing ? "Syncing…" : "Sync Now"}
-        </Button>
+        <div className="flex gap-2 shrink-0">
+          <Button size="sm" onClick={() => handleSync(false)} disabled={syncing}>
+            <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${syncing ? "animate-spin" : ""}`} />
+            {syncing ? "Syncing…" : "Sync Now"}
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => handleSync(true)} disabled={syncing}>
+            Full Import
+          </Button>
+        </div>
       </div>
 
       {pending > 0 && (
