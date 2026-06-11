@@ -1,11 +1,18 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
-function getResend() {
-  return new Resend(process.env.RESEND_API_KEY);
+function getTransporter() {
+  return nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_APP_PASSWORD,
+    },
+  });
 }
 
 function getFrom() {
-  return process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
+  return `GameCatalog <${process.env.GMAIL_USER}>`;
 }
 
 function getAppUrl() {
@@ -14,7 +21,7 @@ function getAppUrl() {
 
 export async function sendVerificationEmail(email: string, token: string) {
   const url = `${getAppUrl()}/verify-email?token=${token}`;
-  await getResend().emails.send({
+  await getTransporter().sendMail({
     from: getFrom(),
     to: email,
     subject: "Verify your GameCatalog account",
@@ -33,7 +40,7 @@ export async function sendVerificationEmail(email: string, token: string) {
 }
 
 export async function sendSignupOtpEmail(email: string, otp: string) {
-  await getResend().emails.send({
+  await getTransporter().sendMail({
     from: getFrom(),
     to: email,
     subject: "Your GameCatalog verification code",
@@ -45,12 +52,13 @@ export async function sendSignupOtpEmail(email: string, otp: string) {
       </div>
       <p style="color:#666;font-size:12px;">If you didn't request this, you can safely ignore this email.</p>
     `,
+    text: `Your GameCatalog verification code: ${otp}\n\nThis code expires in 15 minutes.\n\nIf you didn't request this, you can safely ignore this email.`,
   });
 }
 
 export async function sendPasswordResetEmail(email: string, token: string) {
   const url = `${getAppUrl()}/reset-password?token=${token}`;
-  await getResend().emails.send({
+  await getTransporter().sendMail({
     from: getFrom(),
     to: email,
     subject: "Reset your GameCatalog password",
