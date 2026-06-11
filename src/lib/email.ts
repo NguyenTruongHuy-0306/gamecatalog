@@ -20,13 +20,15 @@ export async function sendVerificationEmail(email: string, token: string) {
     subject: "Verify your GameCatalog account",
     html: `
       <h2>Welcome to GameCatalog!</h2>
-      <p>Click the link below to verify your email address. This link expires in 24 hours.</p>
+      <p>Click the button below to verify your email address. This link expires in 24 hours.</p>
       <a href="${url}" style="background:#6d28d9;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;display:inline-block;margin-top:8px;">
         Verify Email
       </a>
-      <p style="margin-top:16px;color:#666;font-size:12px;">Or copy and paste this link into your browser:<br><a href="${url}" style="color:#6d28d9;word-break:break-all;">${url}</a></p>
+      <p style="margin-top:16px;color:#666;font-size:12px;">If the button doesn't work, copy and paste this URL into your browser:</p>
+      <p style="font-size:12px;word-break:break-all;background:#f4f4f4;padding:8px;border-radius:4px;">${url}</p>
       <p style="margin-top:8px;color:#666;font-size:12px;">If you didn't create an account, you can safely ignore this email.</p>
     `,
+    text: `Welcome to GameCatalog!\n\nVerify your email address by visiting this link (expires in 24 hours):\n${url}\n\nIf you didn't create an account, you can safely ignore this email.`,
   });
 }
 
@@ -54,12 +56,14 @@ export async function sendPasswordResetEmail(email: string, token: string) {
     subject: "Reset your GameCatalog password",
     html: `
       <h2>Password Reset</h2>
-      <p>Click the link below to reset your password. This link expires in 1 hour.</p>
+      <p>Click the button below to reset your password. This link expires in 1 hour.</p>
       <a href="${url}" style="background:#6d28d9;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;display:inline-block;margin-top:8px;">
         Reset Password
       </a>
-      <p style="margin-top:16px;color:#666;font-size:12px;">Or copy and paste this link into your browser:<br><a href="${url}" style="color:#6d28d9;word-break:break-all;">${url}</a></p>
+      <p style="margin-top:16px;color:#666;font-size:12px;">If the button doesn't work, copy and paste this URL into your browser:</p>
+      <p style="font-size:12px;word-break:break-all;background:#f4f4f4;padding:8px;border-radius:4px;">${url}</p>
       <p style="margin-top:8px;color:#666;font-size:12px;">If you didn't request a password reset, you can safely ignore this email.</p>
     `,
+    text: `Reset your GameCatalog password\n\nVisit this link to reset your password (expires in 1 hour):\n${url}\n\nIf you didn't request a password reset, you can safely ignore this email.`,
   });
 }
