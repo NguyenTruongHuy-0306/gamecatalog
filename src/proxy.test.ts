@@ -105,6 +105,28 @@ describe("/complete-profile", () => {
   });
 });
 
+describe("main page access after login", () => {
+  it("allows a logged-in regular user to reach /", async () => {
+    const res = await proxyHandler(req("/", userSession()), {} as any) as Response;
+    expect(res.status).not.toBe(307);
+  });
+
+  it("allows a logged-in admin to reach /", async () => {
+    const res = await proxyHandler(req("/", adminSession()), {} as any) as Response;
+    expect(res.status).not.toBe(307);
+  });
+
+  it("allows an unauthenticated visitor to reach /", async () => {
+    const res = await proxyHandler(req("/"), {} as any) as Response;
+    expect(res.status).not.toBe(307);
+  });
+
+  it("does not redirect a logged-in user to /login when visiting /", async () => {
+    const res = await proxyHandler(req("/", userSession()), {} as any) as Response;
+    expect(res.headers.get("location")).toBeNull();
+  });
+});
+
 describe("needsSetup redirect", () => {
   it("redirects to /complete-profile when needsSetup is true on any route", async () => {
     const res = await proxyHandler(req("/", userSession({ needsSetup: true })), {} as any) as Response;
