@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { fetchUpdatedGames, type IgdbGame } from "@/lib/igdb";
+import { fetchUpdatedGames, IGDB_PAGE_SIZE, type IgdbGame } from "@/lib/igdb";
 import { computeReleaseStatus } from "@/lib/release-status-config";
 
 export interface SyncResult {
@@ -7,6 +7,7 @@ export interface SyncResult {
   updated: number;
   skipped: number;
   errors: number;
+  hasMore: boolean;
 }
 
 function igdbCoverUrl(imageId: string) {
@@ -32,17 +33,21 @@ function mapGame(g: IgdbGame) {
   };
 }
 
-async function resolveGenreIds(names: string[]): Promise<string[]> {
+// Cache genre slug→id within a single sync run to avoid redundant DB round-trips.
+async function resolveGenreIds(names: string[], cache: Map<string, string>): Promise<string[]> {
   const ids: string[] = [];
   for (const name of names) {
     const slug = toSlug(name);
-    const genre = await prisma.genre.upsert({
-      where: { slug },
-      create: { name, slug },
-      update: {},
-      select: { id: true },
-    });
-    ids.push(genre.id);
+    if (!cache.has(slug)) {
+      const genre = await prisma.genre.upsert({
+        where: { slug },
+        create: { name, slug },
+        update: {},
+        select: { id: true },
+      });
+      cache.set(slug, genre.id);
+    }
+    ids.push(cache.get(slug)!);
   }
   return ids;
 }
@@ -66,9 +71,10 @@ export async function runIgdbSync(): Promise<SyncResult> {
 
   const since = state.lastSyncedAt;
   const syncedAt = Math.floor(Date.now() / 1000);
-  const result: SyncResult = { added: 0, updated: 0, skipped: 0, errors: 0 };
+  const result: SyncResult = { added: 0, updated: 0, skipped: 0, errors: 0, hasMore: false };
 
   const games = await fetchUpdatedGames(since);
+  const genreCache = new Map<string, string>();
 
   for (const igdbGame of games) {
     try {
@@ -79,7 +85,7 @@ export async function runIgdbSync(): Promise<SyncResult> {
         continue;
       }
 
-      const genreIds = await resolveGenreIds(mapped.genreNames);
+      const genreIds = await resolveGenreIds(mapped.genreNames, genreCache);
 
       const existing = await prisma.game.findUnique({
         where: { igdbId: igdbGame.id },
@@ -146,10 +152,27 @@ export async function runIgdbSync(): Promise<SyncResult> {
     }
   }
 
-  await prisma.igdbSyncState.update({
-    where: { id: 1 },
-    data: { lastSyncedAt: syncedAt },
-  });
+  // Cursor logic: if we got a full page, more games exist on IGDB.
+  // Advance lastSyncedAt to the max updated_at in this batch so the next call
+  // picks up where we left off. If we got fewer than a full page, we're caught
+  // up and set lastSyncedAt to now (standard incremental behaviour).
+  if (games.length >= IGDB_PAGE_SIZE) {
+    const maxUpdatedAt = Math.max(...games.map((g) => g.updated_at ?? 0));
+    // If cursor didn't advance (all games share the same updated_at), nudge
+    // forward by 1 second to avoid an infinite loop at the cost of a tiny gap.
+    const nextCursor = maxUpdatedAt > since ? maxUpdatedAt : since + 1;
+    await prisma.igdbSyncState.update({
+      where: { id: 1 },
+      data: { lastSyncedAt: nextCursor },
+    });
+    result.hasMore = true;
+  } else {
+    await prisma.igdbSyncState.update({
+      where: { id: 1 },
+      data: { lastSyncedAt: syncedAt },
+    });
+    result.hasMore = false;
+  }
 
   return result;
 }

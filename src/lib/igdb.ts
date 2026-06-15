@@ -56,49 +56,38 @@ async function getAccessToken(): Promise<string> {
   return access_token;
 }
 
+export const IGDB_PAGE_SIZE = 500;
+
+// Fetches ONE page of games (up to IGDB_PAGE_SIZE). Caller is responsible for
+// looping via the cursor — runIgdbSync does this between Vercel invocations.
 export async function fetchUpdatedGames(since: number): Promise<IgdbGame[]> {
   const token = await getAccessToken();
   const clientId = process.env.IGDB_CLIENT_ID!;
 
-  const all: IgdbGame[] = [];
-  let offset = 0;
-  const limit = 500;
+  const whereClause =
+    since > 0
+      ? `updated_at > ${since} & category = (0,8,9) & version_parent = null`
+      : `category = (0,8,9) & version_parent = null`;
 
-  while (true) {
-    const whereClause =
-      since > 0
-        ? `updated_at > ${since} & category = (0,8,9) & version_parent = null`
-        : `category = (0,8,9) & version_parent = null`;
+  const query =
+    `fields id,name,slug,summary,first_release_date,cover.image_id,` +
+    `genres.name,involved_companies.developer,involved_companies.publisher,` +
+    `involved_companies.company.name,category,updated_at;` +
+    `where ${whereClause};` +
+    `sort updated_at asc;` +
+    `limit ${IGDB_PAGE_SIZE};` +
+    `offset 0;`;
 
-    const query =
-      `fields id,name,slug,summary,first_release_date,cover.image_id,` +
-      `genres.name,involved_companies.developer,involved_companies.publisher,` +
-      `involved_companies.company.name,category,updated_at;` +
-      `where ${whereClause};` +
-      `sort updated_at asc;` +
-      `limit ${limit};` +
-      `offset ${offset};`;
+  const res = await fetch(`${IGDB_BASE}/games`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Client-ID": clientId,
+      "Content-Type": "text/plain",
+    },
+    body: query,
+  });
 
-    const res = await fetch(`${IGDB_BASE}/games`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Client-ID": clientId,
-        "Content-Type": "text/plain",
-      },
-      body: query,
-    });
-
-    if (!res.ok) throw new Error(`IGDB games fetch failed: ${res.status}`);
-
-    const batch = (await res.json()) as IgdbGame[];
-    all.push(...batch);
-
-    if (batch.length < limit) break;
-
-    offset += limit;
-    await new Promise((r) => setTimeout(r, 250)); // stay under 4 req/sec
-  }
-
-  return all;
+  if (!res.ok) throw new Error(`IGDB games fetch failed: ${res.status}`);
+  return (await res.json()) as IgdbGame[];
 }

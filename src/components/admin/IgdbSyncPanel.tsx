@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,25 +21,73 @@ export function IgdbSyncPanel({ lastSyncedAt: initial, pending: initialPending }
   const [syncing, setSyncing] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState(initial);
   const [pending, setPending] = useState(initialPending);
-  const [lastResult, setLastResult] = useState<{ added: number; updated: number; errors: number } | null>(null);
+  const [lastResult, setLastResult] = useState<{ added: number; updated: number; errors: number; hasMore?: boolean } | null>(null);
+  const abortRef = useRef(false);
 
-  async function handleSync(full = false) {
+  async function handleSync() {
     setSyncing(true);
     setLastResult(null);
     try {
-      const url = full ? "/api/admin/sync/igdb?full=true" : "/api/admin/sync/igdb";
-      const res = await fetch(url, { method: "POST" });
+      const res = await fetch("/api/admin/sync/igdb", { method: "POST" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Sync failed");
-      setLastResult({ added: data.added, updated: data.updated, errors: data.errors });
+      setLastResult({ added: data.added, updated: data.updated, errors: data.errors, hasMore: data.hasMore });
       setLastSyncedAt(Math.floor(Date.now() / 1000));
       setPending((p) => p + data.added);
-      toast.success(`Sync complete — ${data.added} added, ${data.updated} updated`);
+      toast.success(`Sync complete — ${data.added} added, ${data.updated} updated${data.hasMore ? " (more pages remain)" : ""}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Sync failed");
     } finally {
       setSyncing(false);
     }
+  }
+
+  async function handleFullImport() {
+    setSyncing(true);
+    setLastResult(null);
+    abortRef.current = false;
+    let totalAdded = 0;
+    let totalUpdated = 0;
+    let totalErrors = 0;
+    let isFirst = true;
+    let page = 0;
+
+    try {
+      while (!abortRef.current) {
+        const url = isFirst ? "/api/admin/sync/igdb?full=true" : "/api/admin/sync/igdb";
+        isFirst = false;
+        page++;
+
+        const res = await fetch(url, { method: "POST" });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error ?? "Sync failed");
+
+        totalAdded += data.added ?? 0;
+        totalUpdated += data.updated ?? 0;
+        totalErrors += data.errors ?? 0;
+
+        setLastResult({ added: totalAdded, updated: totalUpdated, errors: totalErrors, hasMore: data.hasMore });
+        setPending((p) => p + (data.added ?? 0));
+
+        if (!data.hasMore) break;
+      }
+
+      setLastSyncedAt(Math.floor(Date.now() / 1000));
+      if (abortRef.current) {
+        toast.info(`Import paused after ${page} pages — ${totalAdded} added, ${totalUpdated} updated`);
+      } else {
+        toast.success(`Full import complete — ${totalAdded} added, ${totalUpdated} updated`);
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Import failed");
+    } finally {
+      setSyncing(false);
+      abortRef.current = false;
+    }
+  }
+
+  function handleStop() {
+    abortRef.current = true;
   }
 
   return (
@@ -52,13 +100,27 @@ export function IgdbSyncPanel({ lastSyncedAt: initial, pending: initialPending }
           </p>
         </div>
         <div className="flex gap-2 shrink-0">
-          <Button size="sm" onClick={() => handleSync(false)} disabled={syncing}>
-            <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${syncing ? "animate-spin" : ""}`} />
-            {syncing ? "Syncing…" : "Sync Now"}
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => handleSync(true)} disabled={syncing}>
-            Full Import
-          </Button>
+          {syncing ? (
+            <Button size="sm" variant="outline" onClick={handleStop}>
+              Stop
+            </Button>
+          ) : (
+            <>
+              <Button size="sm" onClick={handleSync} disabled={syncing}>
+                <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                Sync Now
+              </Button>
+              <Button size="sm" variant="outline" onClick={handleFullImport} disabled={syncing}>
+                Full Import
+              </Button>
+            </>
+          )}
+          {syncing && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+              Importing…
+            </div>
+          )}
         </div>
       </div>
 
@@ -85,6 +147,11 @@ export function IgdbSyncPanel({ lastSyncedAt: initial, pending: initialPending }
           {lastResult.errors > 0 && (
             <Badge variant="destructive" className="text-xs gap-1">
               {lastResult.errors} errors
+            </Badge>
+          )}
+          {lastResult.hasMore && !syncing && (
+            <Badge variant="secondary" className="text-xs gap-1">
+              More pages — press Sync Now to continue
             </Badge>
           )}
         </div>

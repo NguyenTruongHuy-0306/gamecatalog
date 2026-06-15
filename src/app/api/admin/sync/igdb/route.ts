@@ -40,7 +40,8 @@ export async function POST(request: NextRequest) {
 
   try {
     const result = await runIgdbSync();
-    const statusUpdates = await updateAllReleaseStatuses();
+    // Only recompute release statuses on the final page to avoid redundant work
+    const statusUpdates = result.hasMore ? 0 : await updateAllReleaseStatuses();
     return NextResponse.json({ ok: true, ...result, statusUpdates });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Sync failed";
