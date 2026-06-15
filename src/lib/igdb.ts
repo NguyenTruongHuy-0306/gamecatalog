@@ -67,10 +67,13 @@ export async function fetchUpdatedGames(since: number): Promise<IgdbGame[]> {
   const token = await getAccessToken();
   const clientId = process.env.IGDB_CLIENT_ID!;
 
+  // IGDB now omits the category field for main games (they appear as category=null).
+  // Match null (main game), 8 (remake), 9 (remaster).
+  const catFilter = `(category = null | category = (8,9))`;
   const whereClause =
     since > 0
-      ? `updated_at > ${since} & category = (0,8,9) & version_parent = null`
-      : `category = (0,8,9) & version_parent = null`;
+      ? `updated_at > ${since} & ${catFilter} & version_parent = null`
+      : `${catFilter} & version_parent = null`;
 
   const query =
     `fields id,name,slug,summary,first_release_date,cover.image_id,` +
