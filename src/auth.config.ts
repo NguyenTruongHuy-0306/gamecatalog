@@ -3,6 +3,7 @@ import type { NextAuthConfig } from "next-auth";
 // Lightweight auth config with no database imports — safe to use in Edge Runtime (proxy.ts).
 // The full auth config (with Prisma) lives in src/auth.ts.
 export const authConfig = {
+  trustHost: process.env.NODE_ENV === "development",
   session: { strategy: "jwt" },
   pages: { signIn: "/login", error: "/login" },
   providers: [],
