@@ -31,10 +31,12 @@ export async function POST(request: NextRequest) {
 
   const full = new URL(request.url).searchParams.get("full") === "true";
   if (full) {
+    // Reset cursor and clear cached token so a fresh one is fetched with the
+    // current credentials — handles the case where credentials were rotated.
     await prisma.igdbSyncState.upsert({
       where: { id: 1 },
       create: { id: 1, lastSyncedAt: 0 },
-      update: { lastSyncedAt: 0 },
+      update: { lastSyncedAt: 0, accessToken: null, tokenExpiresAt: null },
     });
   }
 
