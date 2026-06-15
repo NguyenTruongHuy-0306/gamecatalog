@@ -38,7 +38,10 @@ async function getAccessToken(): Promise<string> {
   url.searchParams.set("grant_type", "client_credentials");
 
   const res = await fetch(url.toString(), { method: "POST" });
-  if (!res.ok) throw new Error(`Twitch token fetch failed: ${res.status}`);
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`Twitch token fetch failed: ${res.status} ${body}`);
+  }
 
   const { access_token, expires_in } = (await res.json()) as {
     access_token: string;
