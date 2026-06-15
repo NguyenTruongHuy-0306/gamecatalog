@@ -55,8 +55,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled?: boolean }) {
       }
       setError("Invalid username or password.");
     } else {
-      router.push("/");
-      router.refresh();
+      window.location.href = "/";
     }
   };
 
