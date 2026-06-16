@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, ExternalLink } from "lucide-react";
+import { RefreshCw, ExternalLink, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
 interface IgdbSyncPanelProps {
@@ -90,6 +90,24 @@ export function IgdbSyncPanel({ lastSyncedAt: initial, pending: initialPending }
     abortRef.current = true;
   }
 
+  async function handleRestart() {
+    setSyncing(true);
+    setLastResult(null);
+    try {
+      const res = await fetch("/api/admin/sync/igdb?full=true", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Reset failed");
+      setLastResult({ added: data.added, updated: data.updated, errors: data.errors, hasMore: data.hasMore });
+      setLastSyncedAt(Math.floor(Date.now() / 1000));
+      setPending((p) => p + data.added);
+      toast.success(`Sync restarted — ${data.added} added, ${data.updated} updated${data.hasMore ? ". Press Full Import to continue." : ""}`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Restart failed");
+    } finally {
+      setSyncing(false);
+    }
+  }
+
   return (
     <div className="rounded-xl border bg-card p-5 space-y-4">
       <div className="flex items-center justify-between gap-4">
@@ -112,6 +130,10 @@ export function IgdbSyncPanel({ lastSyncedAt: initial, pending: initialPending }
               </Button>
               <Button size="sm" variant="outline" onClick={handleFullImport} disabled={syncing}>
                 Full Import
+              </Button>
+              <Button size="sm" variant="destructive" onClick={handleRestart} disabled={syncing}>
+                <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                Restart
               </Button>
             </>
           )}
