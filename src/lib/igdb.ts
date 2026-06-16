@@ -70,10 +70,11 @@ export async function fetchUpdatedGames(since: number): Promise<IgdbGame[]> {
   // IGDB now omits the category field for main games (they appear as category=null).
   // Match null (main game), 8 (remake), 9 (remaster).
   const catFilter = `(category = null | category = (8,9))`;
+  const popularFilter = `rating_count >= 50`;
   const whereClause =
     since > 0
-      ? `updated_at > ${since} & ${catFilter} & version_parent = null`
-      : `${catFilter} & version_parent = null`;
+      ? `updated_at > ${since} & ${catFilter} & version_parent = null & ${popularFilter}`
+      : `${catFilter} & version_parent = null & ${popularFilter}`;
 
   const query =
     `fields id,name,slug,summary,first_release_date,cover.image_id,` +
