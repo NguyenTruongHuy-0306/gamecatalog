@@ -138,7 +138,7 @@ export async function runIgdbSync(): Promise<SyncResult> {
             releaseStatus: computeReleaseStatus(mapped.releaseYear),
             developer: mapped.developer,
             publisher: mapped.publisher,
-            isPublished: false,
+            isPublished: true,
           },
           select: { id: true },
         });
