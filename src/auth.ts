@@ -16,7 +16,7 @@ const loginSchema = z.object({
 });
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  trustHost: process.env.NODE_ENV === "development",
+  trustHost: true,
   session: { strategy: "jwt" },
   providers: [
     Credentials({
