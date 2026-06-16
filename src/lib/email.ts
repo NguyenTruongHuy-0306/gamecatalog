@@ -5,7 +5,7 @@ function getResend() {
 }
 
 function getFrom() {
-  return process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
+  return process.env.RESEND_FROM_EMAIL || "noreply@gamecatalog.dev";
 }
 
 function getAppUrl() {

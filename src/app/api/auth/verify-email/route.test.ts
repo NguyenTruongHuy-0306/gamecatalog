@@ -1,6 +1,11 @@
 import { vi, describe, it, expect, afterEach } from "vitest";
 import { NextRequest } from "next/server";
 
+vi.mock("@/auth", () => ({ auth: vi.fn() }));
+
+const mockCheckRateLimit = vi.hoisted(() => vi.fn().mockResolvedValue({ allowed: true }));
+vi.mock("@/lib/rate-limit", () => ({ checkRateLimit: mockCheckRateLimit }));
+
 const mockVerificationToken = vi.hoisted(() => ({
   findUnique: vi.fn(),
   delete: vi.fn(),

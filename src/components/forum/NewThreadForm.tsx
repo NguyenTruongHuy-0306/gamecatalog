@@ -23,7 +23,7 @@ interface NewThreadFormProps {
   gameSlug: string;
 }
 
-export function NewThreadForm({ defaultCategory, gameId, gameSlug }: NewThreadFormProps) {
+export function NewThreadForm({ defaultCategory, gameId }: NewThreadFormProps) {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");

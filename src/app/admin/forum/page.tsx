@@ -70,7 +70,8 @@ export default function AdminForumPage() {
     }
   }, []);
 
-  useEffect(() => { fetchThreads(tab, q, category); }, [tab, category]); // eslint-disable-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
+  useEffect(() => { fetchThreads(tab, q, category); }, [tab, category]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

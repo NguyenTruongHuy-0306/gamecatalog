@@ -11,6 +11,7 @@ const mockGame = vi.hoisted(() => ({
   delete: vi.fn(),
 }));
 vi.mock("@/lib/db", () => ({ prisma: { game: mockGame } }));
+vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 import { GET, PUT, DELETE } from "./route";
 

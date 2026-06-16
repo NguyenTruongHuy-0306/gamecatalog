@@ -57,7 +57,7 @@ export function ForumDirectory({ games }: { games: GameForumEntry[] }) {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    let result = q ? games.filter((g) => g.title.toLowerCase().includes(q)) : games;
+    const result = q ? games.filter((g) => g.title.toLowerCase().includes(q)) : games;
     return [...result].sort((a, b) => {
       if (sort === "title") return a.title.localeCompare(b.title);
       if (sort === "threads") return b.threadCount - a.threadCount;

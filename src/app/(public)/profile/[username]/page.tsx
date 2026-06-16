@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { StarDisplay } from "@/components/shared/StarDisplay";
 import Link from "next/link";
-import { Heart, Star, MessageSquare, Calendar, ShieldCheck, Gamepad2, Users } from "lucide-react";
+import { Star, MessageSquare, Calendar, ShieldCheck, Gamepad2, Users } from "lucide-react";
 import type { Metadata } from "next";
 
 interface PageProps {

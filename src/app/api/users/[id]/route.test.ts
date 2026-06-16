@@ -12,8 +12,9 @@ const mockUser = vi.hoisted(() => ({
 }));
 const mockReview = vi.hoisted(() => ({ aggregate: vi.fn() }));
 const mockGame = vi.hoisted(() => ({ update: vi.fn() }));
+const mockForumThread = vi.hoisted(() => ({ findMany: vi.fn().mockResolvedValue([]) }));
 vi.mock("@/lib/db", () => ({
-  prisma: { user: mockUser, review: mockReview, game: mockGame },
+  prisma: { user: mockUser, review: mockReview, game: mockGame, forumThread: mockForumThread },
 }));
 
 import { GET, PUT, DELETE, PATCH } from "./route";

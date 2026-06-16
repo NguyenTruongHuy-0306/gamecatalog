@@ -22,7 +22,6 @@ export default function ForgotPasswordPage() {
   // Start cooldown countdown whenever an email is sent
   useEffect(() => {
     if (!sent) return;
-    setCountdown(RESEND_COOLDOWN);
     timerRef.current = setInterval(() => {
       setCountdown((c) => {
         if (c <= 1) {
@@ -33,7 +32,6 @@ export default function ForgotPasswordPage() {
       });
     }, 1000);
     return () => clearInterval(timerRef.current!);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sent, resendCount]);
 
   const sendRequest = async () => {
@@ -49,6 +47,7 @@ export default function ForgotPasswordPage() {
         const data = await res.json().catch(() => ({}));
         setError(data.error ?? "Something went wrong. Please try again.");
       } else {
+        setCountdown(RESEND_COOLDOWN);
         setSent(true);
       }
     } catch {
@@ -65,6 +64,7 @@ export default function ForgotPasswordPage() {
 
   const handleResend = async () => {
     if (countdown > 0 || resendCount >= MAX_RESENDS) return;
+    setCountdown(RESEND_COOLDOWN);
     setResendCount((c) => c + 1);
     await sendRequest();
   };
