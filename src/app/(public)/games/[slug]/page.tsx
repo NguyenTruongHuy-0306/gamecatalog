@@ -17,6 +17,32 @@ import Link from "next/link";
 import { RecaptchaProvider } from "@/components/auth/RecaptchaProvider";
 import type { Metadata } from "next";
 
+const STORE_PLATFORM: Record<string, string> = {
+  "Steam": "PC",
+  "Epic Games": "PC",
+  "GOG": "PC",
+  "EA App": "PC",
+  "Battle.net": "PC",
+  "Humble Bundle": "PC",
+  "PlayStation Store": "Console",
+  "Xbox": "Console",
+  "Nintendo eShop": "Nintendo",
+};
+
+const PLATFORM_ORDER = ["PC", "Console", "Nintendo", "Other"];
+
+function groupPurchaseLinks(links: { store: string; url: string }[]) {
+  const groups = new Map<string, { store: string; url: string }[]>();
+  for (const link of links) {
+    const platform = STORE_PLATFORM[link.store] ?? "Other";
+    if (!groups.has(platform)) groups.set(platform, []);
+    groups.get(platform)!.push(link);
+  }
+  return PLATFORM_ORDER
+    .filter((p) => groups.has(p))
+    .map((platform) => ({ platform, links: groups.get(platform)! }));
+}
+
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
@@ -217,19 +243,30 @@ export default async function GameDetailPage({ params }: PageProps) {
               <h3 className="font-semibold text-sm flex items-center gap-2">
                 <ShoppingCart className="h-4 w-4 text-primary" /> Where to Buy
               </h3>
-              <div className="space-y-2">
-                {(game.purchaseLinks as { store: string; url: string }[]).map((link, i) => (
-                  <a
-                    key={i}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between w-full rounded-lg border bg-muted/30 hover:bg-muted/60 px-3 py-2 text-sm font-medium transition-colors group"
-                  >
-                    <span>{link.store}</span>
-                    <ExternalLink className="h-3.5 w-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
-                  </a>
-                ))}
+              <div className="space-y-4">
+                {groupPurchaseLinks(game.purchaseLinks as { store: string; url: string }[]).map(
+                  ({ platform, links }) => (
+                    <div key={platform}>
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
+                        {platform}
+                      </p>
+                      <div className="space-y-2">
+                        {links.map((link, i) => (
+                          <a
+                            key={i}
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-between w-full rounded-lg border bg-muted/30 hover:bg-muted/60 px-3 py-2 text-sm font-medium transition-colors group"
+                          >
+                            <span>{link.store}</span>
+                            <ExternalLink className="h-3.5 w-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                )}
               </div>
             </div>
           )}
