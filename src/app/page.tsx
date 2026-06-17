@@ -49,27 +49,24 @@ const features = [
   {
     id: "ratings",
     icon: Star,
-    label: "01",
     title: "Community Ratings",
     desc: "Honest scores from verified players. No bots, no paid placements — just real opinions.",
-    accent: "text-yellow-500",
-    bg: "bg-yellow-500/8",
+    accent: "text-primary",
+    bg: "bg-primary/8",
     span: "md:col-span-2",
   },
   {
     id: "filtering",
     icon: Zap,
-    label: "02",
     title: "Smart Filtering",
     desc: "Drill down by genre, release year, quality tier, and rating. Find exactly what you want.",
-    accent: "text-primary",
-    bg: "bg-primary/8",
+    accent: "text-sky-400",
+    bg: "bg-sky-400/8",
     span: "md:row-span-2",
   },
   {
     id: "trusted",
     icon: Shield,
-    label: "03",
     title: "Trusted & Moderated",
     desc: "Email-verified accounts and active moderation keep the community genuine.",
     accent: "text-emerald-500",
@@ -79,11 +76,10 @@ const features = [
   {
     id: "free",
     icon: Infinity,
-    label: "04",
     title: "Free Forever",
     desc: "No subscriptions. No paywalls. GameCatalog is and always will be completely free.",
-    accent: "text-violet-500",
-    bg: "bg-violet-500/8",
+    accent: "text-violet-400",
+    bg: "bg-violet-400/8",
     span: "",
   },
 ];
@@ -120,7 +116,7 @@ export default async function HomePage() {
             className="absolute inset-0 animate-gradient-shift"
             style={{
               background:
-                "radial-gradient(ellipse 70% 60% at 20% 50%, oklch(0.52 0.22 285 / 0.12) 0%, transparent 60%), radial-gradient(ellipse 50% 50% at 80% 30%, oklch(0.65 0.22 240 / 0.08) 0%, transparent 55%), radial-gradient(ellipse 40% 40% at 60% 80%, oklch(0.6 0.2 300 / 0.06) 0%, transparent 50%)",
+                "radial-gradient(ellipse 70% 60% at 20% 50%, oklch(0.78 0.18 75 / 0.1) 0%, transparent 60%), radial-gradient(ellipse 50% 50% at 80% 30%, oklch(0.72 0.2 55 / 0.07) 0%, transparent 55%), radial-gradient(ellipse 40% 40% at 60% 80%, oklch(0.65 0.22 90 / 0.05) 0%, transparent 50%)",
             }}
             aria-hidden="true"
           />
@@ -213,7 +209,7 @@ export default async function HomePage() {
                     className="absolute inset-0 rounded-3xl blur-3xl opacity-30 animate-gradient-shift"
                     style={{
                       background:
-                        "radial-gradient(ellipse at center, oklch(0.72 0.2 285 / 0.5), oklch(0.65 0.22 240 / 0.3), transparent 70%)",
+                        "radial-gradient(ellipse at center, oklch(0.78 0.18 75 / 0.5), oklch(0.72 0.2 55 / 0.3), transparent 70%)",
                       backgroundSize: "200% 200%",
                     }}
                     aria-hidden="true"
@@ -442,14 +438,11 @@ export default async function HomePage() {
             </ScrollReveal>
 
             <div className="grid md:grid-cols-3 gap-4">
-              {features.map(({ id, icon: Icon, label, title, desc, accent, bg, span }, i) => (
+              {features.map(({ id, icon: Icon, title, desc, accent, bg, span }, i) => (
                 <ScrollReveal key={id} delay={i * 80} className={span}>
                   <div className="h-full rounded-2xl border border-border/60 bg-card p-8 flex flex-col gap-4 group hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 neon-card">
-                    <div className="flex items-start justify-between">
-                      <div className={`flex items-center justify-center h-12 w-12 rounded-2xl ${bg} group-hover:scale-110 transition-transform duration-300`}>
-                        <Icon className={`h-6 w-6 ${accent}`} />
-                      </div>
-                      <span className="font-mono text-xs text-muted-foreground/30 font-bold text-right">{label}</span>
+                    <div className={`flex items-center justify-center h-12 w-12 rounded-xl ${bg} group-hover:scale-110 transition-transform duration-300`}>
+                      <Icon className={`h-6 w-6 ${accent}`} />
                     </div>
                     <div className="mt-auto">
                       <h3 className="font-bold text-lg mb-2 tracking-tight">{title}</h3>
@@ -469,7 +462,7 @@ export default async function HomePage() {
             className="absolute inset-0 animate-gradient-shift"
             style={{
               background:
-                "linear-gradient(135deg, oklch(0.52 0.22 285 / 0.12), oklch(0.65 0.22 240 / 0.08), oklch(0.6 0.2 300 / 0.1), oklch(0.52 0.22 285 / 0.12))",
+                "linear-gradient(135deg, oklch(0.78 0.18 75 / 0.1), oklch(0.72 0.2 55 / 0.07), oklch(0.65 0.22 90 / 0.08), oklch(0.78 0.18 75 / 0.1))",
               backgroundSize: "300% 300%",
             }}
             aria-hidden="true"
