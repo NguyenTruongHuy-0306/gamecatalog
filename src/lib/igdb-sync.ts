@@ -18,6 +18,25 @@ function toSlug(str: string) {
   return str.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
+// IGDB website category → store display name (only stores we recognise)
+const IGDB_STORE_CATEGORIES: Record<number, string> = {
+  13: "Steam",
+  16: "Epic Games",
+  17: "GOG",
+};
+
+function pickPurchaseLinks(
+  websites: IgdbGame["websites"]
+): { store: string; url: string }[] {
+  if (!websites?.length) return [];
+  const links: { store: string; url: string }[] = [];
+  for (const site of websites) {
+    const store = IGDB_STORE_CATEGORIES[site.category];
+    if (store) links.push({ store, url: site.url });
+  }
+  return links;
+}
+
 function pickTrailer(videos: IgdbGame["videos"]): string | null {
   if (!videos?.length) return null;
   const trailer = videos.find((v) => v.name.toLowerCase().includes("trailer"));
@@ -37,6 +56,7 @@ function mapGame(g: IgdbGame) {
     publisher: g.involved_companies?.find((c) => c.publisher)?.company.name ?? null,
     genreNames: g.genres?.map((x) => x.name) ?? [],
     youtubeVideoId: pickTrailer(g.videos),
+    purchaseLinks: pickPurchaseLinks(g.websites),
   };
 }
 
@@ -117,6 +137,8 @@ export async function runIgdbSync(): Promise<SyncResult> {
         if (!locked.has("publisher")) data.publisher = mapped.publisher;
         if (!locked.has("youtubeVideoId") && mapped.youtubeVideoId)
           data.youtubeVideoId = mapped.youtubeVideoId;
+        if (!locked.has("purchaseLinks") && mapped.purchaseLinks.length > 0)
+          data.purchaseLinks = mapped.purchaseLinks;
 
         if (Object.keys(data).length > 0) {
           await prisma.game.update({ where: { id: existing.id }, data });
@@ -148,6 +170,7 @@ export async function runIgdbSync(): Promise<SyncResult> {
             developer: mapped.developer,
             publisher: mapped.publisher,
             youtubeVideoId: mapped.youtubeVideoId,
+            purchaseLinks: mapped.purchaseLinks,
             isPublished: true,
           },
           select: { id: true },

@@ -17,6 +17,7 @@ export interface IgdbGame {
     company: { name: string };
   }>;
   videos?: Array<{ video_id: string; name: string }>;
+  websites?: Array<{ category: number; url: string }>;
   category: number;
   updated_at: number;
 }
@@ -80,7 +81,8 @@ export async function fetchUpdatedGames(since: number): Promise<IgdbGame[]> {
   const query =
     `fields id,name,slug,summary,first_release_date,cover.image_id,` +
     `genres.name,involved_companies.developer,involved_companies.publisher,` +
-    `involved_companies.company.name,videos.video_id,videos.name,category,updated_at;` +
+    `involved_companies.company.name,videos.video_id,videos.name,` +
+    `websites.category,websites.url,category,updated_at;` +
     `where ${whereClause};` +
     `sort updated_at asc;` +
     `limit ${IGDB_PAGE_SIZE};` +
