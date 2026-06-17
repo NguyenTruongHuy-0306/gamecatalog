@@ -164,6 +164,23 @@ export function CompleteProfileForm() {
           {loading ? "Saving…" : "Complete Registration"}
         </Button>
       </form>
+
+      <div className="text-center">
+        <button
+          type="button"
+          onClick={async () => {
+            setLoading(true);
+            await fetch("/api/auth/complete-profile", { method: "DELETE" });
+            await update();
+            router.push("/");
+            router.refresh();
+          }}
+          disabled={loading}
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+        >
+          Skip for now
+        </button>
+      </div>
     </div>
   );
 }

@@ -73,3 +73,14 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ message: "Profile complete." });
 }
+
+export async function DELETE() {
+  const { session, error } = await requireAuth();
+  if (error) return error;
+
+  await prisma.verificationToken.deleteMany({
+    where: { userId: session!.user.id, type: "needs_setup" },
+  });
+
+  return NextResponse.json({ message: "Setup skipped." });
+}
