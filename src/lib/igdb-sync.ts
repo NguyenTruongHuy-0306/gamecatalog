@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { fetchUpdatedGames, IGDB_PAGE_SIZE, type IgdbGame } from "@/lib/igdb";
+import { fetchUpdatedGames, fetchGameByIgdbId, IGDB_PAGE_SIZE, type IgdbGame } from "@/lib/igdb";
 import { computeReleaseStatus } from "@/lib/release-status-config";
 
 export interface SyncResult {
@@ -89,6 +89,85 @@ async function applyGenres(gameId: string, genreIds: string[]) {
   }
 }
 
+type SyncOutcome = "added" | "updated" | "skipped";
+
+async function processSingleIgdbGame(
+  igdbGame: IgdbGame,
+  genreCache: Map<string, string>
+): Promise<SyncOutcome> {
+  const mapped = mapGame(igdbGame);
+  if (!mapped.releaseYear) return "skipped";
+
+  const genreIds = await resolveGenreIds(mapped.genreNames, genreCache);
+
+  const existing = await prisma.game.findUnique({
+    where: { igdbId: igdbGame.id },
+    select: { id: true, lockedFields: true },
+  });
+
+  if (existing) {
+    const locked = new Set(existing.lockedFields);
+    const data: Record<string, unknown> = {};
+
+    if (!locked.has("title")) data.title = mapped.title;
+    if (!locked.has("slug")) data.slug = mapped.slug;
+    if (!locked.has("description") && mapped.description)
+      data.description = mapped.description;
+    if (!locked.has("coverImageUrl") && mapped.coverImageUrl)
+      data.coverImageUrl = mapped.coverImageUrl;
+    if (!locked.has("releaseYear")) {
+      data.releaseYear = mapped.releaseYear;
+      data.releaseStatus = computeReleaseStatus(mapped.releaseYear);
+    }
+    if (!locked.has("developer")) data.developer = mapped.developer;
+    if (!locked.has("publisher")) data.publisher = mapped.publisher;
+    if (!locked.has("youtubeVideoId") && mapped.youtubeVideoId)
+      data.youtubeVideoId = mapped.youtubeVideoId;
+    if (!locked.has("purchaseLinks") && mapped.purchaseLinks.length > 0)
+      data.purchaseLinks = mapped.purchaseLinks;
+
+    if (Object.keys(data).length > 0) {
+      await prisma.game.update({ where: { id: existing.id }, data });
+    }
+    if (!locked.has("genres")) {
+      await applyGenres(existing.id, genreIds);
+    }
+    return "updated";
+  } else {
+    let slug = mapped.slug;
+    const conflict = await prisma.game.findUnique({ where: { slug }, select: { id: true } });
+    if (conflict) slug = `${slug}-${igdbGame.id}`;
+
+    const newGame = await prisma.game.create({
+      data: {
+        igdbId: igdbGame.id,
+        title: mapped.title,
+        slug,
+        description: mapped.description || "No description available.",
+        coverImageUrl: mapped.coverImageUrl,
+        releaseYear: mapped.releaseYear,
+        releaseStatus: computeReleaseStatus(mapped.releaseYear),
+        developer: mapped.developer,
+        publisher: mapped.publisher,
+        youtubeVideoId: mapped.youtubeVideoId,
+        purchaseLinks: mapped.purchaseLinks,
+        isPublished: true,
+      },
+      select: { id: true },
+    });
+    await applyGenres(newGame.id, genreIds);
+    return "added";
+  }
+}
+
+export async function syncIgdbGameById(
+  igdbId: number
+): Promise<SyncOutcome | "not_found"> {
+  const igdbGame = await fetchGameByIgdbId(igdbId);
+  if (!igdbGame) return "not_found";
+  return processSingleIgdbGame(igdbGame, new Map());
+}
+
 export async function runIgdbSync(): Promise<SyncResult> {
   const state = await prisma.igdbSyncState.upsert({
     where: { id: 1 },
@@ -105,80 +184,10 @@ export async function runIgdbSync(): Promise<SyncResult> {
 
   for (const igdbGame of games) {
     try {
-      const mapped = mapGame(igdbGame);
-
-      if (!mapped.releaseYear) {
-        result.skipped++;
-        continue;
-      }
-
-      const genreIds = await resolveGenreIds(mapped.genreNames, genreCache);
-
-      const existing = await prisma.game.findUnique({
-        where: { igdbId: igdbGame.id },
-        select: { id: true, lockedFields: true },
-      });
-
-      if (existing) {
-        const locked = new Set(existing.lockedFields);
-        const data: Record<string, unknown> = {};
-
-        if (!locked.has("title")) data.title = mapped.title;
-        if (!locked.has("slug")) data.slug = mapped.slug;
-        if (!locked.has("description") && mapped.description)
-          data.description = mapped.description;
-        if (!locked.has("coverImageUrl") && mapped.coverImageUrl)
-          data.coverImageUrl = mapped.coverImageUrl;
-        if (!locked.has("releaseYear")) {
-          data.releaseYear = mapped.releaseYear;
-          data.releaseStatus = computeReleaseStatus(mapped.releaseYear);
-        }
-        if (!locked.has("developer")) data.developer = mapped.developer;
-        if (!locked.has("publisher")) data.publisher = mapped.publisher;
-        if (!locked.has("youtubeVideoId") && mapped.youtubeVideoId)
-          data.youtubeVideoId = mapped.youtubeVideoId;
-        if (!locked.has("purchaseLinks") && mapped.purchaseLinks.length > 0)
-          data.purchaseLinks = mapped.purchaseLinks;
-
-        if (Object.keys(data).length > 0) {
-          await prisma.game.update({ where: { id: existing.id }, data });
-        }
-
-        if (!locked.has("genres")) {
-          await applyGenres(existing.id, genreIds);
-        }
-
-        result.updated++;
-      } else {
-        // Deduplicate slug if it conflicts with an existing, unlinked game
-        let slug = mapped.slug;
-        const conflict = await prisma.game.findUnique({
-          where: { slug },
-          select: { id: true },
-        });
-        if (conflict) slug = `${slug}-${igdbGame.id}`;
-
-        const newGame = await prisma.game.create({
-          data: {
-            igdbId: igdbGame.id,
-            title: mapped.title,
-            slug,
-            description: mapped.description || "No description available.",
-            coverImageUrl: mapped.coverImageUrl,
-            releaseYear: mapped.releaseYear,
-            releaseStatus: computeReleaseStatus(mapped.releaseYear),
-            developer: mapped.developer,
-            publisher: mapped.publisher,
-            youtubeVideoId: mapped.youtubeVideoId,
-            purchaseLinks: mapped.purchaseLinks,
-            isPublished: true,
-          },
-          select: { id: true },
-        });
-
-        await applyGenres(newGame.id, genreIds);
-        result.added++;
-      }
+      const outcome = await processSingleIgdbGame(igdbGame, genreCache);
+      if (outcome === "added") result.added++;
+      else if (outcome === "updated") result.updated++;
+      else result.skipped++;
     } catch (err) {
       console.error(`IGDB sync error — game ${igdbGame.id} (${igdbGame.name}):`, err);
       result.errors++;

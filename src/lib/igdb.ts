@@ -63,6 +63,33 @@ async function getAccessToken(): Promise<string> {
 
 export const IGDB_PAGE_SIZE = 500;
 
+const GAME_FIELDS =
+  `fields id,name,slug,summary,first_release_date,cover.image_id,` +
+  `genres.name,involved_companies.developer,involved_companies.publisher,` +
+  `involved_companies.company.name,videos.video_id,videos.name,` +
+  `websites.category,websites.url,category,updated_at;`;
+
+export async function fetchGameByIgdbId(igdbId: number): Promise<IgdbGame | null> {
+  const token = await getAccessToken();
+  const clientId = process.env.IGDB_CLIENT_ID!;
+
+  const query = `${GAME_FIELDS}where id = ${igdbId};limit 1;`;
+
+  const res = await fetch(`${IGDB_BASE}/games`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Client-ID": clientId,
+      "Content-Type": "text/plain",
+    },
+    body: query,
+  });
+
+  if (!res.ok) throw new Error(`IGDB game fetch failed: ${res.status}`);
+  const games = (await res.json()) as IgdbGame[];
+  return games[0] ?? null;
+}
+
 // Fetches ONE page of games (up to IGDB_PAGE_SIZE). Caller is responsible for
 // looping via the cursor — runIgdbSync does this between Vercel invocations.
 export async function fetchUpdatedGames(since: number): Promise<IgdbGame[]> {
@@ -79,10 +106,7 @@ export async function fetchUpdatedGames(since: number): Promise<IgdbGame[]> {
       : `${catFilter} & version_parent = null & ${popularFilter}`;
 
   const query =
-    `fields id,name,slug,summary,first_release_date,cover.image_id,` +
-    `genres.name,involved_companies.developer,involved_companies.publisher,` +
-    `involved_companies.company.name,videos.video_id,videos.name,` +
-    `websites.category,websites.url,category,updated_at;` +
+    `${GAME_FIELDS}` +
     `where ${whereClause};` +
     `sort updated_at asc;` +
     `limit ${IGDB_PAGE_SIZE};` +

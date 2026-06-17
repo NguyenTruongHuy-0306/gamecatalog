@@ -15,6 +15,7 @@ import { Calendar, User2, Building2, Layers, MessageSquare, History, ShoppingCar
 import Image from "next/image";
 import Link from "next/link";
 import { RecaptchaProvider } from "@/components/auth/RecaptchaProvider";
+import { SyncFromIgdbButton } from "@/components/games/SyncFromIgdbButton";
 import type { Metadata } from "next";
 
 const STORE_PLATFORM: Record<string, string> = {
@@ -214,6 +215,14 @@ export default async function GameDetailPage({ params }: PageProps) {
 
         {/* Sidebar */}
         <aside className="space-y-4">
+          {/* Admin utilities */}
+          {session?.user?.role === "admin" && game.igdbId && (
+            <div className="rounded-2xl border border-dashed bg-card/50 p-3 space-y-1.5">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Admin</p>
+              <SyncFromIgdbButton gameId={game.id} />
+            </div>
+          )}
+
           {/* Details card */}
           <div className="rounded-2xl border bg-card p-4 space-y-3">
             <h3 className="font-semibold text-sm flex items-center gap-2">
