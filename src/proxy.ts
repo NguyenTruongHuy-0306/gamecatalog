@@ -29,7 +29,7 @@ export default auth((req) => {
 
   const isAdminRoute = pathname.startsWith("/admin");
   const isUserRoute =
-    pathname.startsWith("/profile") || pathname.startsWith("/settings");
+    pathname === "/profile" || pathname.startsWith("/settings");
 
   if (isAdminRoute) {
     if (!session?.user) return NextResponse.redirect(new URL("/login", nextUrl));
