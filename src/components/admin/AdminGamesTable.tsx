@@ -56,6 +56,20 @@ export function AdminGamesTable({ games }: { games: Game[] }) {
       return next;
     });
 
+  const handleDelete = (id: string, title: string) => {
+    if (!confirm(`Permanently delete "${title}"? This cannot be undone.`)) return;
+    startTransition(async () => {
+      const res = await fetch(`/api/games/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success(`"${title}" deleted.`);
+        setSelected((prev) => { const next = new Set(prev); next.delete(id); return next; });
+        router.refresh();
+      } else {
+        toast.error("Failed to delete game.");
+      }
+    });
+  };
+
   const handleBulkDelete = () => {
     const ids = [...selected];
     if (!confirm(`Permanently delete ${ids.length} game${ids.length > 1 ? "s" : ""}? This cannot be undone.`)) return;
@@ -177,9 +191,21 @@ export function AdminGamesTable({ games }: { games: Game[] }) {
                     )}
                   </TableCell>
                   <TableCell>
-                    <Button render={<Link href={`/admin/games/${game.id}`} />} variant="ghost" size="sm">
-                      Edit
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button render={<Link href={`/admin/games/${game.id}`} />} variant="ghost" size="sm">
+                        Edit
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => handleDelete(game.id, game.title)}
+                        disabled={isPending}
+                        aria-label={`Delete ${game.title}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

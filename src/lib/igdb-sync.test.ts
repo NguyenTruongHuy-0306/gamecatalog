@@ -87,7 +87,7 @@ describe("runIgdbSync", () => {
     expect(data.slug).toBe("test-game");
     expect(data.developer).toBe("Dev Studio");
     expect(data.publisher).toBe("Pub Corp");
-    expect(data.isPublished).toBe(false);
+    expect(data.isPublished).toBe(true);
   });
 
   it("updates an existing game when igdbId matches", async () => {

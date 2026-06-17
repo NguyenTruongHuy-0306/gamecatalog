@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { GameForm } from "@/components/admin/GameForm";
 import { VersionFormSection } from "@/components/admin/VersionFormSection";
+import { DeleteGameButton } from "@/components/admin/DeleteGameButton";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Edit Game — Admin" };
@@ -56,6 +57,8 @@ export default async function AdminEditGamePage({ params }: PageProps) {
         <h2 className="text-xl font-semibold mb-4">Version History</h2>
         <VersionFormSection gameId={game.id} versions={game.versions} />
       </div>
+
+      <DeleteGameButton gameId={game.id} gameTitle={game.title} />
     </div>
   );
 }
