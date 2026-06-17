@@ -152,23 +152,26 @@
   transition-timing-function: ease !important;
 }
 
-/* ── Button glow & lift effects ── */
+/* ── Button utilities ── */
 @layer utilities {
-  .btn-glow {
-    @apply relative;
-    &::after {
+  /* Left-to-right fill wipe on hover */
+  .btn-sweep {
+    @apply relative overflow-hidden;
+    &::before {
       content: '';
       position: absolute;
-      inset: -1px;
-      border-radius: inherit;
-      background: linear-gradient(135deg, oklch(0.78 0.18 75 / 0.5), oklch(0.72 0.2 55 / 0.4));
-      opacity: 0;
-      transition: opacity 200ms;
-      z-index: -1;
-      filter: blur(8px);
+      inset: 0;
+      background: oklch(0.78 0.18 75 / 0.14);
+      transform: translateX(-100%);
+      transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 0;
     }
-    &:hover::after {
-      opacity: 1;
+    &:hover::before {
+      transform: translateX(0);
+    }
+    & > * {
+      position: relative;
+      z-index: 1;
     }
   }
 
@@ -212,7 +215,7 @@
       var(--background);
   }
 
-  /* Grid pattern background */
+  /* Grid pattern — footer only */
   .bg-grid {
     background-image:
       linear-gradient(to right, oklch(0.58 0.18 75 / 0.06) 1px, transparent 1px),
@@ -253,56 +256,7 @@
   }
 }
 
-/* ── Marquee animation ── */
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
-}
-
-.animate-marquee {
-  animation: marquee 35s linear infinite;
-  will-change: transform;
-}
-
-.animate-marquee:hover {
-  animation-play-state: paused;
-}
-
-/* ── Float animations ── */
-@keyframes float-a {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50%       { transform: translateY(-14px) rotate(0.5deg); }
-}
-@keyframes float-b {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50%       { transform: translateY(-9px) rotate(-0.5deg); }
-}
-@keyframes float-c {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50%       { transform: translateY(-11px) rotate(0.3deg); }
-}
-
-.animate-float-a { animation: float-a 6s ease-in-out infinite; }
-.animate-float-b { animation: float-b 4.5s ease-in-out infinite; }
-.animate-float-c { animation: float-c 5.5s ease-in-out infinite; }
-
-/* ── Gold pulse ── */
-@keyframes neon-pulse {
-  0%, 100% {
-    box-shadow:
-      0 0 5px  oklch(0.78 0.18 75 / 0.3),
-      0 0 20px oklch(0.78 0.18 75 / 0.12);
-  }
-  50% {
-    box-shadow:
-      0 0 10px oklch(0.78 0.18 75 / 0.55),
-      0 0 40px oklch(0.78 0.18 75 / 0.22),
-      0 0 80px oklch(0.78 0.18 75 / 0.08);
-  }
-}
-.animate-neon-pulse { animation: neon-pulse 2.5s ease-in-out infinite; }
-
-/* ── Gradient shift ── */
+/* ── Gradient shift (kept for use in auth backgrounds) ── */
 @keyframes gradient-shift {
   0%   { background-position: 0%   50%; }
   50%  { background-position: 100% 50%; }
@@ -313,66 +267,31 @@
   animation: gradient-shift 8s ease infinite;
 }
 
-/* ── Scan line ── */
-@keyframes scan {
-  0%   { transform: translateY(-100%); }
-  100% { transform: translateY(100vh); }
-}
-
-/* ── Gold card utility ── */
+/* ── Gold card border — hover shows border only, no glow ── */
 .neon-card {
   border: 1px solid oklch(0.58 0.18 75 / 0.1);
-  transition: border-color 0.3s, box-shadow 0.3s;
+  transition: border-color 0.3s;
 }
 .dark .neon-card {
   border: 1px solid oklch(0.78 0.18 75 / 0.1);
 }
 .neon-card:hover {
   border-color: oklch(0.78 0.18 75 / 0.45);
-  box-shadow:
-    0 0 0 1px oklch(0.78 0.18 75 / 0.1),
-    0 0 20px oklch(0.78 0.18 75 / 0.14),
-    0 0 50px oklch(0.78 0.18 75 / 0.05);
 }
 
-/* ── Scanlines overlay ── */
-.scanlines::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 3px,
-    oklch(0 0 0 / 0.04) 3px,
-    oklch(0 0 0 / 0.04) 4px
-  );
-  pointer-events: none;
-}
-
-/* ── Glow line ── */
+/* ── Solid gold rule — used at section top edges ── */
 .glow-line {
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    oklch(0.68 0.18 75 / 0.6) 50%,
-    transparent 100%
-  );
+  height: 2px;
+  background: oklch(0.68 0.18 75 / 0.35);
 }
 .dark .glow-line {
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    oklch(0.78 0.18 75 / 0.8) 50%,
-    transparent 100%
-  );
+  background: oklch(0.78 0.18 75 / 0.45);
 }
 
-/* ── Section fade-up reveal (paired with JS intersection observer) ── */
+/* ── Section scale-up reveal (paired with JS intersection observer) ── */
 .reveal {
   opacity: 0;
-  transform: translateY(24px);
+  transform: scale(0.97);
   transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
               transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }

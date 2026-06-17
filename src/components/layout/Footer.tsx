@@ -12,7 +12,7 @@ export function Footer() {
   return (
     <footer className="relative overflow-hidden border-t bg-card">
       {/* Grid background */}
-      <div className="absolute inset-0 bg-grid opacity-40" aria-hidden="true" />
+      <div className="absolute inset-0 bg-grid opacity-15" aria-hidden="true" />
       <div className="absolute inset-0 bg-gradient-to-b from-transparent to-card/80" aria-hidden="true" />
 
       {/* Top glow accent */}
@@ -24,7 +24,7 @@ export function Footer() {
           {/* Brand */}
           <div className="md:col-span-2 space-y-5">
             <Link href="/" className="flex items-center gap-3 group w-fit">
-              <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-primary text-primary-foreground shadow-md group-hover:shadow-primary/50 group-hover:scale-105 transition-all duration-300 animate-neon-pulse">
+              <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-primary text-primary-foreground shadow-md group-hover:shadow-primary/50 group-hover:scale-105 transition-all duration-300">
                 <Gamepad2 className="h-5 w-5" aria-hidden="true" />
               </div>
               <span className="font-black text-2xl gradient-text tracking-tight">GameCatalog</span>
