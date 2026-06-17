@@ -107,7 +107,7 @@ model Game {
   versions        GameVersion[]
   reviews         Review[]
   favorites       Favorite[]
-  gameListEntries GameListEntry[]
+  gameLists       GameListEntry[]
   forumThreads    ForumThread[]
 
   @@index([avgRating(sort: Desc)])
