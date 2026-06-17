@@ -13,6 +13,14 @@ enum ReleaseStatus {
   classic
 }
 
+enum GameListType {
+  PLAYING
+  COMPLETED
+  BACKLOG
+  WISHLIST
+  CUSTOM
+}
+
 model User {
   id            String    @id @default(uuid())
   email         String    @unique
@@ -39,6 +47,7 @@ model User {
   flaggedReviews     Review[]            @relation("ReviewFlaggedBy")
   verificationTokens VerificationToken[]
   favorites          Favorite[]
+  gameLists          GameList[]
   forumThreads       ForumThread[]       @relation("ForumThreadAuthor")
   forumPosts         ForumPost[]         @relation("ForumPostAuthor")
   reviewVotes        ReviewVote[]
@@ -72,9 +81,9 @@ model Genre {
 }
 
 model Game {
-  id             String    @id @default(uuid())
+  id             String        @id @default(uuid())
   title          String
-  slug           String    @unique
+  slug           String        @unique
   description    String
   releaseYear    Int
   developer      String?
@@ -82,23 +91,24 @@ model Game {
   qualityTier    String?
   youtubeVideoId String?
   coverImageUrl  String?
-  purchaseLinks  Json      @default("[]")
-  avgRating      Float     @default(0)
-  reviewCount    Int       @default(0)
+  purchaseLinks  Json          @default("[]")
+  avgRating      Float         @default(0)
+  reviewCount    Int           @default(0)
   isPublished    Boolean       @default(false)
   releaseStatus  ReleaseStatus @default(released) @map("release_status")
   igdbId         Int?          @unique @map("igdb_id")
-  lockedFields   String[]  @default([]) @map("locked_fields")
+  lockedFields   String[]      @default([]) @map("locked_fields")
   createdById    String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
-  createdBy    User?         @relation("GameCreatedBy", fields: [createdById], references: [id])
-  gameGenres   GameGenre[]
-  versions     GameVersion[]
-  reviews      Review[]
-  favorites    Favorite[]
-  forumThreads ForumThread[]
+  createdBy       User?           @relation("GameCreatedBy", fields: [createdById], references: [id])
+  gameGenres      GameGenre[]
+  versions        GameVersion[]
+  reviews         Review[]
+  favorites       Favorite[]
+  gameListEntries GameListEntry[]
+  forumThreads    ForumThread[]
 
   @@index([avgRating(sort: Desc)])
   @@index([releaseYear])
@@ -187,6 +197,36 @@ model Favorite {
   @@id([userId, gameId])
   @@index([userId])
   @@map("favorites")
+}
+
+model GameList {
+  id        String       @id @default(uuid())
+  userId    String
+  type      GameListType
+  name      String
+  isPublic  Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  user    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entries GameListEntry[]
+
+  @@unique([userId, type, name])
+  @@index([userId])
+  @@map("game_lists")
+}
+
+model GameListEntry {
+  listId  String
+  gameId  String
+  addedAt DateTime @default(now())
+
+  list GameList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  game Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@id([listId, gameId])
+  @@index([gameId])
+  @@map("game_list_entries")
 }
 
 model ForumThread {
