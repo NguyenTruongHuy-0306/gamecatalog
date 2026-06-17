@@ -231,6 +231,22 @@ export default function AdminReviewsPage() {
       )}
 
       {/* Review list */}
+      {!loading && sorted.length > 0 && (
+        <div className="flex items-center gap-2 px-1 pb-1 border-b">
+          <input
+            type="checkbox"
+            className="h-4 w-4 rounded border border-input"
+            checked={sorted.every((r) => selected.has(r.id))}
+            onChange={() => {
+              const allIds = sorted.map((r) => r.id);
+              const allSelected = allIds.every((id) => selected.has(id));
+              setSelected(allSelected ? new Set() : new Set(allIds));
+            }}
+            aria-label="Select all reviews"
+          />
+          <span className="text-xs text-muted-foreground">Select all</span>
+        </div>
+      )}
       {loading ? (
         <div className="text-center py-12 text-muted-foreground">Loading…</div>
       ) : reviews.length === 0 ? (

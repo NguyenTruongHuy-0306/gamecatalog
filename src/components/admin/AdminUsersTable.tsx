@@ -60,6 +60,37 @@ export function AdminUsersTable({ users, currentUserId }: Props) {
       return next;
     });
 
+  const handleRowDelete = (id: string, username: string) => {
+    if (!confirm(`Permanently delete "${username}"? This cannot be undone.`)) return;
+    startTransition(async () => {
+      const res = await fetch(`/api/users/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success(`"${username}" deleted.`);
+        setSelected((prev) => { const next = new Set(prev); next.delete(id); return next; });
+        router.refresh();
+      } else {
+        toast.error("Failed to delete user.");
+      }
+    });
+  };
+
+  const handleRowBan = (id: string, username: string) => {
+    if (!confirm(`Ban "${username}"? They will lose access immediately.`)) return;
+    startTransition(async () => {
+      const res = await fetch(`/api/users/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isBanned: true }),
+      });
+      if (res.ok) {
+        toast.success(`"${username}" banned.`);
+        router.refresh();
+      } else {
+        toast.error("Failed to ban user.");
+      }
+    });
+  };
+
   const runBulk = (action: "ban" | "delete") => {
     const ids = [...selected];
     if (ids.length === 0) return;
@@ -191,9 +222,35 @@ export function AdminUsersTable({ users, currentUserId }: Props) {
                       {new Date(user.createdAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
-                      <Button render={<Link href={`/admin/users/${user.id}`} />} variant="ghost" size="sm">
-                        View
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button render={<Link href={`/admin/users/${user.id}`} />} variant="ghost" size="sm">
+                          View
+                        </Button>
+                        {isSelectable && !user.isBanned && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-amber-600 hover:text-amber-700"
+                            onClick={() => handleRowBan(user.id, user.username)}
+                            disabled={isPending}
+                            aria-label={`Ban ${user.username}`}
+                          >
+                            <ShieldOff className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {isSelectable && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => handleRowDelete(user.id, user.username)}
+                            disabled={isPending}
+                            aria-label={`Delete ${user.username}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
